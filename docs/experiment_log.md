@@ -5,6 +5,7 @@ Record every meaningful local experiment and DACON submission here. Keep paths r
 | exp_id | submit_file | model | features | local_score | public_score | public_1_nmae | public_ficr | notes |
 |---|---|---|---|---:|---:|---:|---:|---|
 | 001_baseline_rf | submissions/baseline_rf_001.csv | RandomForest | baseline features | - | 0.5879246832 | 0.8637123595 | 0.312137007 | first submitted baseline |
+| baseline_rf_001_valid_2024 | outputs/predictions/baseline_rf_001_valid_2024.csv | RandomForest | baseline calendar + LDAPS/GFS mean features | 0.5777342168 | - | - | - | 2024 time-based local validation pipeline |
 
 ## Checklist
 
@@ -14,3 +15,5 @@ Record every meaningful local experiment and DACON submission here. Keep paths r
 - Save run logs to `outputs/logs/`.
 - Save final submission CSVs to `submissions/`.
 - Run `python scripts/validate_submission.py submissions/<file>.csv` before upload.
+
+
