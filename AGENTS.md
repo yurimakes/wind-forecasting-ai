@@ -14,3 +14,6 @@
 - Save prediction artifacts under `outputs/predictions/`.
 - Save logs and run summaries under `outputs/logs/`.
 - Validate every submission candidate with `scripts/validate_submission.py` before upload.
+
+# 
+- Before editing data, feature, metric, train, inference, or submission code, read docs/competition_agent_context.md first.
