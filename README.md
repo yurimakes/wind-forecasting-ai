@@ -56,16 +56,19 @@ Validation status:
 | `lgbm_001` | LightGBM v1 | baseline calendar + LDAPS/GFS mean features | 0.5984976879 | - | local validation baseline |
 | `lgbm_002_wind` | LightGBM v1 | baseline calendar + LDAPS/GFS mean features + wind vector derivatives | 0.5966447814 | - | worse than `lgbm_001`, no submission |
 | `lgbm_003_tuned_submit` | LightGBM tuned grid | baseline calendar + LDAPS/GFS mean features | 0.6033279875 | 0.60516 | current best submitted model |
+| `lgbm_004_weather_agg` | LightGBM tuned grid | baseline calendar + LDAPS/GFS mean features + row-wise LDAPS/GFS weather aggregations | 0.5962283588 | - | worse than `lgbm_003_tuned`, no submission |
 | `cat_001_baseline` | CatBoost baseline | baseline calendar + LDAPS/GFS mean features | 0.5980575665 | - | ensemble candidate, no submission yet |
 | `xgb_001_baseline` | XGBoost baseline | baseline calendar + LDAPS/GFS mean features | 0.5988239498 | - | ensemble candidate, no submission yet |
 
 Important lessons so far:
 
 - Wind vector derivative features in `lgbm_002_wind` did not improve local validation.
+- Broad row-wise LDAPS/GFS aggregation in `lgbm_004_weather_agg` degraded performance, likely because it mixed weather variables with different physical meanings and units.
 - Tuned LightGBM with smaller trees performed better.
 - Current best LightGBM setting: `num_leaves=15`, `min_child_samples=20`, `learning_rate=0.03`, `n_estimators=1000`, `reg_lambda=5.0`.
 - CatBoost baseline did not beat tuned LightGBM but may be useful later for ensemble diversity.
 - XGBoost baseline did not beat tuned LightGBM but is currently the strongest non-LightGBM ensemble candidate.
+- Detailed qualitative feedback and experiment lessons are documented in `docs/experiment_feedback.md`.
 
 ## How to Reproduce Current Best Submission
 
@@ -85,5 +88,5 @@ The tuned submission uses separate LightGBM models for the three KPX groups, bas
 
 Planned experiments:
 
-1. `lgbm_004_weather_agg`: expanded weather aggregation features.
+1. `lgbm_005_targeted_weather`: physically targeted weather features.
 2. `ens_001_simple_avg`: ensemble of strong candidate submissions.

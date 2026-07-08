@@ -56,9 +56,24 @@ XGBoost status:
 - artifacts: `outputs/predictions/xgb_001_baseline_valid_2024.csv`, `outputs/logs/xgb_001_baseline_valid_2024.json`, `outputs/models/xgb_001_baseline_valid_2024.joblib`
 - decision: lower than `lgbm_003_tuned_submit`, so no submission yet; keep as an ensemble diversity candidate.
 
+LightGBM weather aggregation status:
+
+- exp_id: `lgbm_004_weather_agg`
+- script: `scripts/train_lgbm_weather_agg_cv.py`
+- feature function: `build_weather_agg_feature_matrix` in `src/dacon_wind/features.py`
+- model: LightGBM tuned grid
+- features: baseline calendar + LDAPS/GFS mean features + row-wise LDAPS/GFS weather aggregations; no wind-derived vector features
+- local validation total_score: 0.5962283588
+- local one_minus_nmae: 0.8657741712
+- local ficr: 0.3266825463
+- artifacts: `outputs/predictions/lgbm_004_weather_agg_valid_2024.csv`, `outputs/logs/lgbm_004_weather_agg_valid_2024.json`, `outputs/models/lgbm_004_weather_agg_valid_2024.joblib`
+- decision: lower than `lgbm_003_tuned_submit`, so no submission.
+
+Experiment interpretation and lessons are maintained in `docs/experiment_feedback.md`.
+
 Next planned experiments:
 
-1. `lgbm_004_weather_agg`: expanded weather aggregation features.
+1. `lgbm_005_targeted_weather`
 2. `ens_001_simple_avg`: ensemble of strong candidate submissions.
 
 ## Constraints
