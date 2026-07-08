@@ -62,6 +62,7 @@ Decision:
 | `xgb_001_baseline` | local 0.5988239498 | ensemble candidate only | XGBoost is the strongest non-LightGBM candidate so far, but still below tuned LightGBM. |
 | `lgbm_004_weather_agg` | local 0.5962283588 | no submission | Broad row-wise weather aggregation added noise and hurt performance. |
 | `lgbm_005_targeted_weather` | local 0.6019196756 | ensemble candidate only | Targeted weather features improved over broad aggregation but did not beat tuned LightGBM. |
+| `ens_001_simple_avg` | local 0.6037465036 | submission candidate | A 50/50 average of `lgbm_003_tuned` and `lgbm_005_targeted_weather` beat the local benchmark. |
 
 ---
 
@@ -261,6 +262,43 @@ Decision:
 
 ---
 
+### 9. `ens_001_simple_avg` - Validation-Only Simple Ensemble
+
+Best candidate:
+
+| Item | Value |
+|---|---:|
+| selected candidate | `ens_001_lgbm003_lgbm005_avg` |
+| local total_score | 0.6037465036 |
+| local one_minus_nmae | 0.8680552297 |
+| local ficr | 0.3394377775 |
+| beats `lgbm_003_tuned` | true |
+
+Candidate scores:
+
+| Candidate | total_score | one_minus_nmae | ficr | Decision |
+|---|---:|---:|---:|---|
+| `ens_001_lgbm003_lgbm005_avg` | 0.6037465036 | 0.8680552297 | 0.3394377775 | submission candidate |
+| `ens_001_lgbm003_lgbm005_xgb_avg` | 0.6025990552 | 0.8678660421 | 0.3373320683 | possible submission candidate |
+| `ens_001_lgbm003_lgbm005_cat_xgb_avg` | 0.6032029445 | 0.8682928764 | 0.3381130125 | possible submission candidate |
+| `ens_001_weighted_lgbm003_lgbm005` | 0.6032676628 | 0.8679214256 | 0.3386138999 | possible submission candidate |
+| `ens_001_weighted_lgbm003_lgbm005_xgb` | 0.6028452327 | 0.8679107443 | 0.3377797211 | possible submission candidate |
+
+Feedback:
+
+- The best validation-only ensemble is a simple 50/50 average of `lgbm_003_tuned` and `lgbm_005_targeted_weather`.
+- It improved both `one_minus_nmae` and FICR slightly over the current local benchmark.
+- Adding XGBoost and CatBoost increased model diversity but reduced FICR enough that total score stayed below the 2-model average.
+- The result supports `lgbm_005_targeted_weather` as useful ensemble diversity even though it was weaker standalone.
+
+Decision:
+
+- Mark as a submission candidate by the predefined decision rule.
+- Do not create final submission code until explicitly requested.
+- If converting to a submission later, train/generate both member test predictions with separate reproducible scripts, average them 50/50, clip by capacity, and validate the final CSV.
+
+---
+
 ## Main Lessons So Far
 
 ### 1. Validation setup matters
@@ -274,6 +312,7 @@ Decision:
 - RandomForest is too weak.
 - CatBoost and XGBoost are useful for ensemble diversity but do not beat tuned LightGBM individually.
 - Current best baseline remains `lgbm_003_tuned_submit`.
+- The best local validation score is now a validation-only ensemble candidate, `ens_001_lgbm003_lgbm005_avg`, but it is not yet a submitted model.
 
 ### 3. Feature engineering must be physically meaningful
 
@@ -292,6 +331,7 @@ More promising direction:
 - Some models have decent NMAE but weak FICR.
 - Experiments should be judged by total_score, but FICR changes should be tracked carefully.
 - A model with slightly lower total_score but meaningfully different FICR behavior may still have ensemble value.
+- In `ens_001_simple_avg`, the 2-model average improved FICR slightly, while adding CatBoost/XGBoost reduced FICR.
 
 ### 5. Do not overfit to public leaderboard
 
@@ -361,11 +401,8 @@ Outcome:
 1. Keep `lgbm_003_tuned_submit` as the current best baseline.
 2. Record `lgbm_004_weather_agg` as a failed broad aggregation attempt.
 3. Keep `lgbm_005_targeted_weather` as an ensemble candidate, not a standalone submission.
-4. After at least one strong non-baseline candidate exists, test simple ensemble:
-   - `lgbm_003_tuned`
-   - `cat_001_baseline`
-   - `xgb_001_baseline`
-   - any improved targeted-weather LightGBM variant
+4. Treat `ens_001_lgbm003_lgbm005_avg` as the current local submission-candidate ensemble.
+5. Before any ensemble submission, create explicit final inference code and validate the generated submission CSV.
 
 ---
 
