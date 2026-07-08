@@ -57,6 +57,7 @@ Validation status:
 | `lgbm_002_wind` | LightGBM v1 | baseline calendar + LDAPS/GFS mean features + wind vector derivatives | 0.5966447814 | - | worse than `lgbm_001`, no submission |
 | `lgbm_003_tuned_submit` | LightGBM tuned grid | baseline calendar + LDAPS/GFS mean features | 0.6033279875 | 0.60516 | current best submitted model |
 | `cat_001_baseline` | CatBoost baseline | baseline calendar + LDAPS/GFS mean features | 0.5980575665 | - | ensemble candidate, no submission yet |
+| `xgb_001_baseline` | XGBoost baseline | baseline calendar + LDAPS/GFS mean features | 0.5988239498 | - | ensemble candidate, no submission yet |
 
 Important lessons so far:
 
@@ -64,6 +65,7 @@ Important lessons so far:
 - Tuned LightGBM with smaller trees performed better.
 - Current best LightGBM setting: `num_leaves=15`, `min_child_samples=20`, `learning_rate=0.03`, `n_estimators=1000`, `reg_lambda=5.0`.
 - CatBoost baseline did not beat tuned LightGBM but may be useful later for ensemble diversity.
+- XGBoost baseline did not beat tuned LightGBM but is currently the strongest non-LightGBM ensemble candidate.
 
 ## How to Reproduce Current Best Submission
 
@@ -79,10 +81,9 @@ The tuned submission uses separate LightGBM models for the three KPX groups, bas
 
 ## Next Experiments
 
-`lgbm_003_tuned_submit` is the current best baseline for comparison. CatBoost is currently an ensemble candidate, not a standalone submission candidate. The next priority is to create diverse model families rather than only micro-tuning LightGBM.
+`lgbm_003_tuned_submit` is the current best baseline for comparison. CatBoost and XGBoost are currently ensemble candidates, not standalone submission candidates. The next priority is to create stronger features and ensemble candidates rather than only micro-tuning LightGBM.
 
 Planned experiments:
 
-1. `xgb_001_baseline`: XGBoost baseline using the same baseline feature matrix.
-2. `lgbm_004_weather_agg`: expanded weather aggregation features.
-3. `ens_001_simple_avg`: ensemble of strong candidate submissions.
+1. `lgbm_004_weather_agg`: expanded weather aggregation features.
+2. `ens_001_simple_avg`: ensemble of strong candidate submissions.

@@ -44,11 +44,22 @@ CatBoost status:
 - local validation total_score: 0.5980575665
 - decision: lower than `lgbm_003_tuned_submit`, so no submission yet; keep as an ensemble diversity candidate.
 
+XGBoost status:
+
+- exp_id: `xgb_001_baseline`
+- script: `scripts/train_xgb_cv.py`
+- model: XGBoost baseline
+- features: baseline calendar + LDAPS/GFS mean features, no wind-derived features
+- local validation total_score: 0.5988239498
+- local one_minus_nmae: 0.8657252879
+- local ficr: 0.3319226117
+- artifacts: `outputs/predictions/xgb_001_baseline_valid_2024.csv`, `outputs/logs/xgb_001_baseline_valid_2024.json`, `outputs/models/xgb_001_baseline_valid_2024.joblib`
+- decision: lower than `lgbm_003_tuned_submit`, so no submission yet; keep as an ensemble diversity candidate.
+
 Next planned experiments:
 
-1. `xgb_001_baseline`: XGBoost baseline using the same baseline feature matrix.
-2. `lgbm_004_weather_agg`: expanded weather aggregation features.
-3. `ens_001_simple_avg`: ensemble of strong candidate submissions.
+1. `lgbm_004_weather_agg`: expanded weather aggregation features.
+2. `ens_001_simple_avg`: ensemble of strong candidate submissions.
 
 ## Constraints
 
