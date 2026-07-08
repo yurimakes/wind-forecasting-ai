@@ -61,6 +61,7 @@ Decision:
 | `cat_001_baseline` | local 0.5980575665 | ensemble candidate only | CatBoost did not beat tuned LightGBM. |
 | `xgb_001_baseline` | local 0.5988239498 | ensemble candidate only | XGBoost is the strongest non-LightGBM candidate so far, but still below tuned LightGBM. |
 | `lgbm_004_weather_agg` | local 0.5962283588 | no submission | Broad row-wise weather aggregation added noise and hurt performance. |
+| `lgbm_005_targeted_weather` | local 0.6019196756 | ensemble candidate only | Targeted weather features improved over broad aggregation but did not beat tuned LightGBM. |
 
 ---
 
@@ -230,6 +231,36 @@ Decision:
 
 ---
 
+### 8. `lgbm_005_targeted_weather` - Targeted Weather Features
+
+Metrics:
+
+| Metric | Value |
+|---|---:|
+| local total_score | 0.6019196756 |
+| local one_minus_nmae | 0.8674731184 |
+| local ficr | 0.3363662327 |
+| beats `lgbm_003_tuned` | false |
+
+Feedback:
+
+- This experiment added explicit targeted weather features:
+  - near-surface and hub-height wind speeds
+  - simple GFS vertical-shear differences and ratios
+  - GFS gust margins
+  - LDAPS/GFS 10m wind component and speed differences
+- It avoided broad row-wise LDAPS/GFS aggregations and avoided the wider `lgbm_002_wind` vector-derived feature set.
+- The result recovered most of the loss from `lgbm_004_weather_agg` and improved `one_minus_nmae` slightly over `lgbm_003_tuned`.
+- The lower FICR kept total score below the current best baseline.
+
+Decision:
+
+- No standalone submission.
+- Keep as an ensemble candidate because its NMAE behavior is competitive and the added features are physically interpretable.
+- Do not expand targeted weather features broadly unless the next candidate has a clear physical reason and is checked against FICR.
+
+---
+
 ## Main Lessons So Far
 
 ### 1. Validation setup matters
@@ -254,6 +285,7 @@ Failed or weak directions:
 More promising direction:
 
 - Targeted weather features based on wind-power domain logic.
+- Targeted weather features may help NMAE but still need FICR-aware validation.
 
 ### 4. FICR is important
 
@@ -269,7 +301,7 @@ More promising direction:
 
 ---
 
-## Recommended Next Experiment
+## Completed Targeted Weather Experiment
 
 ### `lgbm_005_targeted_weather`
 
@@ -316,15 +348,20 @@ Success criteria:
 | local total_score < 0.600 | Record only |
 | FICR improves clearly | Consider ensemble even if total_score is slightly lower |
 
+Outcome:
+
+- Local total_score was 0.6019196756, below `lgbm_003_tuned`.
+- `one_minus_nmae` improved slightly, but FICR dropped.
+- Keep as an ensemble candidate only.
+
 ---
 
 ## Current Action Plan
 
 1. Keep `lgbm_003_tuned_submit` as the current best baseline.
 2. Record `lgbm_004_weather_agg` as a failed broad aggregation attempt.
-3. Update README/workflow documentation to mark `lgbm_004_weather_agg` as completed and not submitted.
-4. Run `lgbm_005_targeted_weather`.
-5. After at least one strong non-baseline candidate exists, test simple ensemble:
+3. Keep `lgbm_005_targeted_weather` as an ensemble candidate, not a standalone submission.
+4. After at least one strong non-baseline candidate exists, test simple ensemble:
    - `lgbm_003_tuned`
    - `cat_001_baseline`
    - `xgb_001_baseline`

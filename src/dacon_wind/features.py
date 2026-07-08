@@ -60,6 +60,42 @@ WEATHER_AGG_COLUMN_GROUPS = (
     ("gfs_surface", "gfs_surface"),
 )
 
+TARGETED_WIND_VECTOR_PAIRS = (
+    (
+        "ldaps_heightAboveGround_10_10u_mean",
+        "ldaps_heightAboveGround_10_10v_mean",
+        "ldaps_h10",
+    ),
+    (
+        "gfs_heightAboveGround_10_10u_mean",
+        "gfs_heightAboveGround_10_10v_mean",
+        "gfs_h10",
+    ),
+    (
+        "gfs_heightAboveGround_80_u_mean",
+        "gfs_heightAboveGround_80_v_mean",
+        "gfs_h80",
+    ),
+    (
+        "gfs_heightAboveGround_100_100u_mean",
+        "gfs_heightAboveGround_100_100v_mean",
+        "gfs_h100",
+    ),
+)
+
+TARGETED_COMPONENT_DIFFS = (
+    (
+        "gfs_heightAboveGround_10_10u_mean",
+        "ldaps_heightAboveGround_10_10u_mean",
+        "gfs_minus_ldaps_h10_u",
+    ),
+    (
+        "gfs_heightAboveGround_10_10v_mean",
+        "ldaps_heightAboveGround_10_10v_mean",
+        "gfs_minus_ldaps_h10_v",
+    ),
+)
+
 
 def aggregate_weather(df: pd.DataFrame, prefix: str) -> pd.DataFrame:
     """Mean-aggregate gridded weather rows by forecast timestamp."""
@@ -140,6 +176,74 @@ def build_weather_agg_feature_matrix(train_frame: pd.DataFrame) -> pd.DataFrame:
     baseline = build_feature_matrix(train_frame)
     weather_agg = _build_row_weather_aggregates(train_frame)
     return pd.concat([baseline, weather_agg], axis=1)
+
+
+def build_targeted_weather_feature_matrix(train_frame: pd.DataFrame) -> pd.DataFrame:
+    """Build baseline features plus targeted, physically meaningful weather features.
+
+    This keeps the tuned LightGBM baseline feature surface as the starting point
+    and adds only explicit wind-speed and vertical-shear style features from
+    clearly named LDAPS/GFS wind component columns. It intentionally excludes
+    the broad row-wise weather aggregates and the wider wind-vector derivative
+    set used by earlier experiments.
+    """
+    baseline = build_feature_matrix(train_frame)
+    targeted = _build_targeted_weather_features(baseline)
+    return pd.concat([baseline, targeted], axis=1)
+
+
+def _build_targeted_weather_features(features: pd.DataFrame) -> pd.DataFrame:
+    """Create targeted features only when the required source columns exist."""
+    out = pd.DataFrame(index=features.index)
+    speeds: dict[str, pd.Series] = {}
+
+    for u_col, v_col, name in TARGETED_WIND_VECTOR_PAIRS:
+        if u_col not in features.columns or v_col not in features.columns:
+            continue
+
+        u = features[u_col].astype(float)
+        v = features[v_col].astype(float)
+        speed = np.sqrt((u * u) + (v * v))
+        speeds[name] = speed
+        out[f"{name}_wind_speed"] = speed
+
+    if "gfs_h100" in speeds and "gfs_h10" in speeds:
+        out["gfs_h100_minus_h10_wind_speed"] = speeds["gfs_h100"] - speeds["gfs_h10"]
+        out["gfs_h100_to_h10_wind_speed_ratio"] = _safe_ratio(
+            speeds["gfs_h100"], speeds["gfs_h10"]
+        )
+
+    if "gfs_h80" in speeds and "gfs_h10" in speeds:
+        out["gfs_h80_minus_h10_wind_speed"] = speeds["gfs_h80"] - speeds["gfs_h10"]
+        out["gfs_h80_to_h10_wind_speed_ratio"] = _safe_ratio(
+            speeds["gfs_h80"], speeds["gfs_h10"]
+        )
+
+    if "gfs_h100" in speeds and "gfs_h80" in speeds:
+        out["gfs_h100_minus_h80_wind_speed"] = speeds["gfs_h100"] - speeds["gfs_h80"]
+
+    if "gfs_h10" in speeds and "ldaps_h10" in speeds:
+        out["gfs_minus_ldaps_h10_wind_speed"] = speeds["gfs_h10"] - speeds["ldaps_h10"]
+
+    gust_col = "gfs_surface_0_gust_mean"
+    if gust_col in features.columns:
+        gust = features[gust_col].astype(float)
+        out["gfs_surface_gust"] = gust
+        if "gfs_h10" in speeds:
+            out["gfs_gust_minus_h10_wind_speed"] = gust - speeds["gfs_h10"]
+        if "gfs_h100" in speeds:
+            out["gfs_gust_minus_h100_wind_speed"] = gust - speeds["gfs_h100"]
+
+    for left_col, right_col, name in TARGETED_COMPONENT_DIFFS:
+        if left_col in features.columns and right_col in features.columns:
+            out[name] = features[left_col].astype(float) - features[right_col].astype(float)
+
+    return out
+
+
+def _safe_ratio(numerator: pd.Series, denominator: pd.Series) -> pd.Series:
+    eps = np.finfo(float).eps
+    return numerator / denominator.mask(denominator.abs() <= eps, np.nan)
 
 
 def _build_row_weather_aggregates(train_frame: pd.DataFrame) -> pd.DataFrame:
