@@ -1,0 +1,13 @@
+﻿.venv/
+.venv2/
+data/
+outputs/
+submissions/
+*.zip
+*.csv
+*.xlsx
+*.pkl
+*.joblib
+*.model
+__pycache__/
+.ipynb_checkpoints/
