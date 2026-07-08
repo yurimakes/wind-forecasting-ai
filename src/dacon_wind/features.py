@@ -47,11 +47,26 @@ def build_baseline_train_frame(
     return base.merge(weather, on="forecast_kst_dtm", how="left")
 
 
+def build_baseline_test_frame(
+    sample_submission: pd.DataFrame,
+    ldaps: pd.DataFrame,
+    gfs: pd.DataFrame,
+) -> pd.DataFrame:
+    """Join sample submission rows with baseline aggregated LDAPS and GFS features."""
+    weather = aggregate_weather(ldaps, "ldaps").merge(
+        aggregate_weather(gfs, "gfs"),
+        on="forecast_kst_dtm",
+        how="inner",
+    )
+    return sample_submission.merge(weather, on="forecast_kst_dtm", how="left")
+
+
 def build_feature_matrix(train_frame: pd.DataFrame) -> pd.DataFrame:
     """Build the model matrix used by the baseline notebook."""
-    target_cols = list(TARGET_COLS)
-    drop_cols = ["forecast_kst_dtm", *target_cols]
-    weather_features = train_frame.drop(columns=drop_cols)
+    drop_cols = ["forecast_kst_dtm", "forecast_id", *TARGET_COLS]
+    weather_features = train_frame.drop(
+        columns=[col for col in drop_cols if col in train_frame.columns]
+    )
 
     return pd.concat(
         [calendar_features(train_frame["forecast_kst_dtm"]), weather_features],
