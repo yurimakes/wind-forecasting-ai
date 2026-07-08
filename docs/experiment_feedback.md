@@ -13,24 +13,29 @@ Use this file together with `docs/experiment_log.md`:
 
 ## Current Reference Baseline
 
-### `lgbm_003_tuned_submit`
+### `ens_001_simple_avg_submit`
 
-Current best submitted model.
+Current best public submission.
 
 | Item | Value |
 |---|---:|
-| local total_score | 0.6033279875 |
-| local one_minus_nmae | 0.8673265858 |
-| local ficr | 0.3393293893 |
-| DACON public total_score | 0.60516 |
-| DACON public one_minus_nmae | 0.86678 |
-| DACON public ficr | 0.34354 |
-| public rank at submission time | 277 |
+| local total_score | 0.6037465036 |
+| local one_minus_nmae | 0.8680552297 |
+| local ficr | 0.3394377775 |
+| DACON public total_score | 0.6062263329 |
+| DACON public one_minus_nmae | 0.8675678207 |
+| DACON public ficr | 0.3448848451 |
+| public rank at submission time | 275 |
 
 Key interpretation:
 
-- The tuned LightGBM model is the current comparison baseline.
-- Public score was slightly higher than local validation score, so the 2024 time-based local validation is not obviously broken.
+- The 50/50 ensemble is the current public reference.
+- The local validation improvement over `lgbm_003_tuned` transferred to the public leaderboard.
+- Both public 1-NMAE and public FiCR improved over `lgbm_003_tuned_submit`.
+- `lgbm_005_targeted_weather` was weak standalone but useful in the 50/50 ensemble.
+- Keep caution that the final target is the private leaderboard, not public score alone.
+- `lgbm_003_tuned_submit` remains the main single-model comparison baseline.
+- Previous best public reference: `lgbm_003_tuned_submit` with public total_score=0.60516, public one_minus_nmae=0.86678, public ficr=0.34354, rank 277 at submission time.
 - The best LightGBM setting used a relatively small tree structure:
   - `num_leaves=15`
   - `min_child_samples=20`
@@ -38,12 +43,12 @@ Key interpretation:
   - `n_estimators=1000`
   - `reg_lambda=5.0`
 - Smaller, more regularized trees appear better than larger, more complex trees for the current feature set.
-- Use this run as the benchmark for all later experiments.
+- Use `ens_001_simple_avg_submit` as the public reference and `lgbm_003_tuned_submit` as the single-model benchmark.
 
 Decision:
 
-- Keep as the current best submission candidate.
-- Do not replace it unless a later local validation result clearly improves or offers strong ensemble value.
+- Keep `ens_001_simple_avg_submit` as the current best public submission.
+- Do not overfit to public leaderboard feedback.
 
 ---
 
@@ -57,13 +62,13 @@ Decision:
 | `lgbm_001_submit_2025` | public 0.6024555766 | submitted baseline | Baseline LightGBM already generalizes reasonably. |
 | `lgbm_002_wind` | local 0.5966447814 | no submission | Naive wind-derived vector features degraded performance. |
 | `lgbm_003_tuned` | local 0.6033279875 | current best local | LightGBM tuning improved both NMAE and FICR. |
-| `lgbm_003_tuned_submit` | public 0.60516 | current best submitted | Best current reference model. |
+| `lgbm_003_tuned_submit` | public 0.60516 | previous best submitted | Main single-model comparison baseline. |
 | `cat_001_baseline` | local 0.5980575665 | ensemble candidate only | CatBoost did not beat tuned LightGBM. |
 | `xgb_001_baseline` | local 0.5988239498 | ensemble candidate only | XGBoost is the strongest non-LightGBM candidate so far, but still below tuned LightGBM. |
 | `lgbm_004_weather_agg` | local 0.5962283588 | no submission | Broad row-wise weather aggregation added noise and hurt performance. |
 | `lgbm_005_targeted_weather` | local 0.6019196756 | ensemble candidate only | Targeted weather features improved over broad aggregation but did not beat tuned LightGBM. |
 | `ens_001_simple_avg` | local 0.6037465036 | submission candidate | A 50/50 average of `lgbm_003_tuned` and `lgbm_005_targeted_weather` beat the local benchmark. |
-| `ens_001_simple_avg_submit` | local reference 0.6037465036 | ready for DACON upload | Submission CSV was created and passed local format validation. |
+| `ens_001_simple_avg_submit` | public 0.6062263329 | current best public submission | 50/50 ensemble improvement transferred to public leaderboard. |
 
 ---
 
@@ -130,7 +135,7 @@ Decision:
 
 Feedback:
 
-- This is the current best experiment.
+- This is the previous best public submission and current single-model benchmark.
 - Tuning LightGBM improved local validation and public leaderboard score.
 - Smaller trees performed better:
   - `num_leaves=15`
@@ -140,7 +145,7 @@ Feedback:
 
 Decision:
 
-- Current best baseline.
+- Previous best public submission and current single-model baseline.
 - Keep as the main benchmark.
 - Future experiments must beat `local total_score=0.6033279875` or provide clear ensemble diversity.
 
@@ -254,6 +259,7 @@ Feedback:
 - It avoided broad row-wise LDAPS/GFS aggregations and avoided the wider `lgbm_002_wind` vector-derived feature set.
 - The result recovered most of the loss from `lgbm_004_weather_agg` and improved `one_minus_nmae` slightly over `lgbm_003_tuned`.
 - The lower FICR kept total score below the current best baseline.
+- The 50/50 `ens_001_simple_avg` result proved that this weak standalone model still added useful ensemble diversity.
 
 Decision:
 
@@ -309,7 +315,7 @@ Status:
 - Created ensemble test predictions at `outputs/predictions/ens_001_simple_avg_test.csv`.
 - Saved run logs and targeted-weather model artifact.
 - `python scripts/validate_submission.py submissions/ens_001_simple_avg.csv` passed.
-- DACON upload has not been performed automatically.
+- Uploaded to DACON as `ens_001_simple_avg edit` by 배추도사님 at 2026-07-09 03:27:38 KST.
 
 Reference metrics:
 
@@ -318,12 +324,30 @@ Reference metrics:
 | validation total_score | 0.6037465036 |
 | validation one_minus_nmae | 0.8680552297 |
 | validation ficr | 0.3394377775 |
-| public score | pending |
+| public total_score | 0.6062263329 |
+| public one_minus_nmae | 0.8675678207 |
+| public ficr | 0.3448848451 |
+| public rank at submission time | 275 |
+
+Comparison against previous best public reference:
+
+| Metric | `lgbm_003_tuned_submit` | `ens_001_simple_avg_submit` |
+|---|---:|---:|
+| public total_score | 0.60516 | 0.6062263329 |
+| public one_minus_nmae | 0.86678 | 0.8675678207 |
+| public ficr | 0.34354 | 0.3448848451 |
+
+Feedback:
+
+- The local validation improvement transferred to the public leaderboard.
+- Both public 1-NMAE and public FiCR improved over `lgbm_003_tuned_submit`.
+- `lgbm_005_targeted_weather` was weaker as a standalone model, but useful in the 50/50 ensemble.
+- Keep caution that final ranking depends on the private leaderboard.
 
 Decision:
 
-- Ready for DACON upload as the current best validation ensemble submission candidate.
-- After upload, record public total_score, public one_minus_nmae, public_ficr, rank, submitter name, and submission time.
+- Current best public submission.
+- Use as the public reference for new ensemble candidates.
 
 ---
 
@@ -339,8 +363,8 @@ Decision:
 
 - RandomForest is too weak.
 - CatBoost and XGBoost are useful for ensemble diversity but do not beat tuned LightGBM individually.
-- Current best baseline remains `lgbm_003_tuned_submit`.
-- The best local validation score is now represented by `ens_001_simple_avg_submit`, which has a generated submission CSV ready for upload.
+- Current best public submission is `ens_001_simple_avg_submit`.
+- `lgbm_003_tuned_submit` remains the strongest single-model baseline and comparison point.
 
 ### 3. Feature engineering must be physically meaningful
 
@@ -364,7 +388,7 @@ More promising direction:
 ### 5. Do not overfit to public leaderboard
 
 - Public score is useful feedback, but not the final private leaderboard.
-- Use `lgbm_003_tuned_submit` as the reference, but keep validation logic time-aware.
+- Use `ens_001_simple_avg_submit` as the public reference and `lgbm_003_tuned_submit` as the single-model reference, but keep validation logic time-aware.
 - Record failed experiments because they are useful for later reports and final presentation.
 
 ---
@@ -421,16 +445,17 @@ Outcome:
 - Local total_score was 0.6019196756, below `lgbm_003_tuned`.
 - `one_minus_nmae` improved slightly, but FICR dropped.
 - Keep as an ensemble candidate only.
+- It was weak standalone but useful in the 50/50 `ens_001_simple_avg` ensemble, which became the current best public submission.
 
 ---
 
 ## Current Action Plan
 
-1. Keep `lgbm_003_tuned_submit` as the current best baseline.
+1. Keep `ens_001_simple_avg_submit` as the current best public reference.
 2. Record `lgbm_004_weather_agg` as a failed broad aggregation attempt.
 3. Keep `lgbm_005_targeted_weather` as an ensemble candidate, not a standalone submission.
-4. Upload `submissions/ens_001_simple_avg.csv` to DACON when ready.
-5. After upload, update the experiment log and feedback with public leaderboard metrics.
+4. Run `ens_002_weight_search_cv` next.
+5. Then consider `ens_003_include_xgb_selective` or `lgbm_006_ficr_focus`.
 
 ---
 
