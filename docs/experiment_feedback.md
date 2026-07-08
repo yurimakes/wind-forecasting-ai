@@ -63,6 +63,7 @@ Decision:
 | `lgbm_004_weather_agg` | local 0.5962283588 | no submission | Broad row-wise weather aggregation added noise and hurt performance. |
 | `lgbm_005_targeted_weather` | local 0.6019196756 | ensemble candidate only | Targeted weather features improved over broad aggregation but did not beat tuned LightGBM. |
 | `ens_001_simple_avg` | local 0.6037465036 | submission candidate | A 50/50 average of `lgbm_003_tuned` and `lgbm_005_targeted_weather` beat the local benchmark. |
+| `ens_001_simple_avg_submit` | local reference 0.6037465036 | ready for DACON upload | Submission CSV was created and passed local format validation. |
 
 ---
 
@@ -299,6 +300,33 @@ Decision:
 
 ---
 
+### 10. `ens_001_simple_avg_submit` - Final Ensemble Submission File
+
+Status:
+
+- Created `submissions/ens_001_simple_avg.csv`.
+- Created member targeted-weather test predictions at `outputs/predictions/lgbm_005_targeted_weather_test.csv`.
+- Created ensemble test predictions at `outputs/predictions/ens_001_simple_avg_test.csv`.
+- Saved run logs and targeted-weather model artifact.
+- `python scripts/validate_submission.py submissions/ens_001_simple_avg.csv` passed.
+- DACON upload has not been performed automatically.
+
+Reference metrics:
+
+| Metric | Value |
+|---|---:|
+| validation total_score | 0.6037465036 |
+| validation one_minus_nmae | 0.8680552297 |
+| validation ficr | 0.3394377775 |
+| public score | pending |
+
+Decision:
+
+- Ready for DACON upload as the current best validation ensemble submission candidate.
+- After upload, record public total_score, public one_minus_nmae, public_ficr, rank, submitter name, and submission time.
+
+---
+
 ## Main Lessons So Far
 
 ### 1. Validation setup matters
@@ -312,7 +340,7 @@ Decision:
 - RandomForest is too weak.
 - CatBoost and XGBoost are useful for ensemble diversity but do not beat tuned LightGBM individually.
 - Current best baseline remains `lgbm_003_tuned_submit`.
-- The best local validation score is now a validation-only ensemble candidate, `ens_001_lgbm003_lgbm005_avg`, but it is not yet a submitted model.
+- The best local validation score is now represented by `ens_001_simple_avg_submit`, which has a generated submission CSV ready for upload.
 
 ### 3. Feature engineering must be physically meaningful
 
@@ -401,8 +429,8 @@ Outcome:
 1. Keep `lgbm_003_tuned_submit` as the current best baseline.
 2. Record `lgbm_004_weather_agg` as a failed broad aggregation attempt.
 3. Keep `lgbm_005_targeted_weather` as an ensemble candidate, not a standalone submission.
-4. Treat `ens_001_lgbm003_lgbm005_avg` as the current local submission-candidate ensemble.
-5. Before any ensemble submission, create explicit final inference code and validate the generated submission CSV.
+4. Upload `submissions/ens_001_simple_avg.csv` to DACON when ready.
+5. After upload, update the experiment log and feedback with public leaderboard metrics.
 
 ---
 
