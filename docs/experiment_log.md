@@ -8,7 +8,8 @@ Record every meaningful local experiment and DACON submission here. Keep paths r
 | baseline_rf_001_valid_2024 | outputs/predictions/baseline_rf_001_valid_2024.csv | RandomForest | baseline calendar + LDAPS/GFS mean features | 0.5777342168 | - | - | - | 2024 time-based local validation pipeline |
 | lgbm_001 | outputs/predictions/lgbm_001_valid_2024.csv | LightGBM v1 | baseline calendar + LDAPS/GFS mean features | 0.5984976879 | - | - | - | 2024 time-based local validation; one_minus_nmae=0.8656673250, ficr=0.3313280508 |
 | lgbm_001_submit_2025 | submissions/lgbm_001.csv | LightGBM v1 | baseline calendar + LDAPS/GFS mean features | - | 0.6024555766 | 0.8659952964 | 0.3389158568 | DACON v2 public score; rank 279 at submission time |
-| lgbm_002_wind | outputs/predictions/lgbm_002_wind_valid_2024.csv | LightGBM v1 | baseline calendar + LDAPS/GFS mean features + wind vector derivatives | - | - | - | - | 2024 time-based local validation pipeline; run `python scripts/train_lgbm_wind_cv.py` to generate artifacts |
+| lgbm_002_wind | outputs/predictions/lgbm_002_wind_valid_2024.csv | LightGBM v1 | baseline calendar + LDAPS/GFS mean features + wind vector derivatives | 0.5966447814 | - | - | - | 2024 local validation; one_minus_nmae=0.8657231002, ficr=0.3275664627; worse than lgbm_001, no submission |
+
 
 ## Checklist
 
