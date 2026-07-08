@@ -540,3 +540,22 @@ Do not modify raw data or submission files unless explicitly requested.
 - 대회 종료 후 산출물 제출 기간이 짧으므로, 코드는 처음부터 재현 가능하게 관리한다.
 - 발표 평가는 문제 이해, 데이터 구성/분석, 성능 개선 과정, 인사이트와 성능 향상의 연결 논리를 본다.
 - 실험 과정에서 실패한 시도도 발표 자료에서 문제 해결력으로 설명할 수 있게 기록한다.
+
+---
+
+## Current Progress Snapshot - 2026-07-09 KST
+
+- Competition: DACON wind power generation forecasting AI contest.
+- Project goal: predict wind power generation for KPX groups using weather forecast data.
+- Current workflow: load raw train/test weather and label data, build baseline calendar + LDAPS/GFS mean features, use 2024 time-based local validation, train separate models for `kpx_group_1`, `kpx_group_2`, and `kpx_group_3`, clip predictions by group capacity, and validate every submission with `scripts/validate_submission.py`.
+- Current best submitted model: `lgbm_003_tuned_submit`.
+- Best submission file: `submissions/lgbm_003_tuned.csv`.
+- Best local validation metrics: total_score=0.6033279875, one_minus_nmae=0.8673265858, ficr=0.3393293893.
+- Best DACON public metrics: total_score=0.60516, one_minus_nmae=0.86678, ficr=0.34354.
+- Public rank at submission time: 277.
+- Submitted name: 배추.
+- Submitter: 배추도사님.
+- Final tuned run artifacts: `submissions/lgbm_003_tuned.csv`, `outputs/predictions/lgbm_003_tuned_test.csv`, `outputs/logs/lgbm_003_tuned_submit.json`, `outputs/models/lgbm_003_tuned_submit.joblib`.
+- Validation status: `python scripts/train_lgbm_tuned_submit.py` completed successfully, and `python scripts/validate_submission.py submissions/lgbm_003_tuned.csv` passed.
+- CatBoost experiment: `cat_001_baseline` used the same baseline feature matrix with no wind-derived features and scored local total_score=0.5980575665, one_minus_nmae=0.8672565037, ficr=0.3288586294. It is lower than `lgbm_003_tuned_submit`, so it is an ensemble candidate rather than a standalone submission candidate.
+- Current direction: keep `lgbm_003_tuned_submit` as the comparison baseline, prioritize diverse model families over only LightGBM micro-tuning, and try `xgb_001_baseline`, `lgbm_004_weather_agg`, and `ens_001_simple_avg` next.
