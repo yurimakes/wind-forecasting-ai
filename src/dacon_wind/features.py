@@ -6,6 +6,45 @@ import pandas as pd
 from dacon_wind.metric import TARGET_COLS
 
 
+WIND_VECTOR_PAIRS = (
+    (
+        "ldaps_heightAboveGround_10_10u_mean",
+        "ldaps_heightAboveGround_10_10v_mean",
+        "ldaps_h10",
+    ),
+    (
+        "gfs_heightAboveGround_10_10u_mean",
+        "gfs_heightAboveGround_10_10v_mean",
+        "gfs_h10",
+    ),
+    (
+        "gfs_heightAboveGround_80_u_mean",
+        "gfs_heightAboveGround_80_v_mean",
+        "gfs_h80",
+    ),
+    (
+        "gfs_heightAboveGround_100_100u_mean",
+        "gfs_heightAboveGround_100_100v_mean",
+        "gfs_h100",
+    ),
+    (
+        "gfs_isobaricInhPa_850_u_mean",
+        "gfs_isobaricInhPa_850_v_mean",
+        "gfs_850hpa",
+    ),
+    (
+        "gfs_isobaricInhPa_700_u_mean",
+        "gfs_isobaricInhPa_700_v_mean",
+        "gfs_700hpa",
+    ),
+    (
+        "gfs_isobaricInhPa_500_u_mean",
+        "gfs_isobaricInhPa_500_v_mean",
+        "gfs_500hpa",
+    ),
+)
+
+
 def aggregate_weather(df: pd.DataFrame, prefix: str) -> pd.DataFrame:
     """Mean-aggregate gridded weather rows by forecast timestamp."""
     drop_cols = {"data_available_kst_dtm", "grid_id", "latitude", "longitude"}
@@ -72,3 +111,36 @@ def build_feature_matrix(train_frame: pd.DataFrame) -> pd.DataFrame:
         [calendar_features(train_frame["forecast_kst_dtm"]), weather_features],
         axis=1,
     )
+
+
+def add_wind_derived_features(features: pd.DataFrame) -> pd.DataFrame:
+    """Add wind vector features from already-aggregated u/v columns."""
+    out = features.copy()
+    missing = [
+        col
+        for u_col, v_col, _ in WIND_VECTOR_PAIRS
+        for col in (u_col, v_col)
+        if col not in out.columns
+    ]
+    if missing:
+        raise ValueError(f"Missing wind vector columns: {missing}")
+
+    eps = np.finfo(float).eps
+    for u_col, v_col, name in WIND_VECTOR_PAIRS:
+        u = out[u_col].astype(float)
+        v = out[v_col].astype(float)
+        speed = np.sqrt((u * u) + (v * v))
+        denom = speed.mask(speed <= eps, np.nan)
+
+        out[f"{name}_wind_speed"] = speed
+        out[f"{name}_wind_dir_u"] = (u / denom).fillna(0.0)
+        out[f"{name}_wind_dir_v"] = (v / denom).fillna(0.0)
+        out[f"{name}_wind_speed_sq"] = speed * speed
+        out[f"{name}_wind_speed_cubed"] = speed * speed * speed
+
+    return out
+
+
+def build_wind_feature_matrix(train_frame: pd.DataFrame) -> pd.DataFrame:
+    """Build baseline features plus wind vector derivatives for LightGBM v2."""
+    return add_wind_derived_features(build_feature_matrix(train_frame))
