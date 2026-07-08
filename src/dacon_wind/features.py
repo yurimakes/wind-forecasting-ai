@@ -44,6 +44,22 @@ WIND_VECTOR_PAIRS = (
     ),
 )
 
+WEATHER_AGG_STATS = ("min", "max", "std", "range", "q25", "q75")
+
+WEATHER_AGG_COLUMN_GROUPS = (
+    ("ldaps_all", "ldaps_"),
+    ("gfs_all", "gfs_"),
+    ("ldaps_h10", "ldaps_heightAboveGround_10"),
+    ("gfs_h10", "gfs_heightAboveGround_10"),
+    ("gfs_h80", "gfs_heightAboveGround_80"),
+    ("gfs_h100", "gfs_heightAboveGround_100"),
+    ("gfs_850hpa", "gfs_isobaricInhPa_850"),
+    ("gfs_700hpa", "gfs_isobaricInhPa_700"),
+    ("gfs_500hpa", "gfs_isobaricInhPa_500"),
+    ("ldaps_surface", "ldaps_surface"),
+    ("gfs_surface", "gfs_surface"),
+)
+
 
 def aggregate_weather(df: pd.DataFrame, prefix: str) -> pd.DataFrame:
     """Mean-aggregate gridded weather rows by forecast timestamp."""
@@ -111,6 +127,47 @@ def build_feature_matrix(train_frame: pd.DataFrame) -> pd.DataFrame:
         [calendar_features(train_frame["forecast_kst_dtm"]), weather_features],
         axis=1,
     )
+
+
+def build_weather_agg_feature_matrix(train_frame: pd.DataFrame) -> pd.DataFrame:
+    """Build baseline features plus row-wise LDAPS/GFS aggregate statistics.
+
+    This starts from the same calendar and mean-aggregated weather features as
+    the tuned LightGBM baseline, then summarizes already-available LDAPS/GFS
+    columns within each forecast timestamp row. It does not add wind vector
+    derivatives or use information outside the baseline train/test frame.
+    """
+    baseline = build_feature_matrix(train_frame)
+    weather_agg = _build_row_weather_aggregates(train_frame)
+    return pd.concat([baseline, weather_agg], axis=1)
+
+
+def _build_row_weather_aggregates(train_frame: pd.DataFrame) -> pd.DataFrame:
+    """Create safe row-wise numeric aggregates from baseline weather columns."""
+    out = pd.DataFrame(index=train_frame.index)
+
+    numeric_weather_cols = [
+        col
+        for col in train_frame.select_dtypes(include=[np.number]).columns
+        if col.startswith(("ldaps_", "gfs_"))
+    ]
+
+    for group_name, prefix in WEATHER_AGG_COLUMN_GROUPS:
+        cols = [col for col in numeric_weather_cols if col.startswith(prefix)]
+        if len(cols) < 2:
+            continue
+
+        values = train_frame.loc[:, cols].astype(float)
+        out[f"{group_name}_row_min"] = values.min(axis=1)
+        out[f"{group_name}_row_max"] = values.max(axis=1)
+        out[f"{group_name}_row_std"] = values.std(axis=1, ddof=0)
+        out[f"{group_name}_row_range"] = (
+            out[f"{group_name}_row_max"] - out[f"{group_name}_row_min"]
+        )
+        out[f"{group_name}_row_q25"] = values.quantile(0.25, axis=1)
+        out[f"{group_name}_row_q75"] = values.quantile(0.75, axis=1)
+
+    return out
 
 
 def add_wind_derived_features(features: pd.DataFrame) -> pd.DataFrame:
