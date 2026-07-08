@@ -10,6 +10,7 @@ Record every meaningful local experiment and DACON submission here. Keep paths r
 | lgbm_001_submit_2025 | submissions/lgbm_001.csv | LightGBM v1 | baseline calendar + LDAPS/GFS mean features | - | 0.6024555766 | 0.8659952964 | 0.3389158568 | DACON v2 public score; rank 279 at submission time |
 | lgbm_002_wind | outputs/predictions/lgbm_002_wind_valid_2024.csv | LightGBM v1 | baseline calendar + LDAPS/GFS mean features + wind vector derivatives | 0.5966447814 | - | - | - | 2024 local validation; one_minus_nmae=0.8657231002, ficr=0.3275664627; worse than lgbm_001, no submission |
 | lgbm_003_tuned | outputs/predictions/lgbm_003_tuned_valid_2024.csv | LightGBM tuned grid | baseline calendar + LDAPS/GFS mean features | pending | - | - | - | 2024 local validation tuning script; results saved to outputs/logs/lgbm_003_tuning_results.csv |
+| lgbm_003_tuned_submit | submissions/lgbm_003_tuned.csv | LightGBM tuned grid | baseline calendar + LDAPS/GFS mean features | 0.6033279875 | - | - | - | Final-fit submission script using all available train labels; validation reference one_minus_nmae=0.8673265858, ficr=0.3393293893 |
 
 
 ## Checklist
