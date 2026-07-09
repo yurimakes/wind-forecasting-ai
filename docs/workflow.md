@@ -44,7 +44,7 @@ Current best public submission:
 - public rank at submission time: 245
 - submitted_at: 2026-07-09 10:20:19 KST
 - submission title: `lgbm_006_ficr_focus.csv edit`
-- submitter/team display: 배추도사님
+- submitter/team display: 
 - validation command passed: `python scripts/validate_submission.py submissions/lgbm_006_ficr_focus.csv`
 
 Previous best public reference:

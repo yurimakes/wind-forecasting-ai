@@ -33,7 +33,7 @@ Raw data and generated outputs are not committed when ignored by `.gitignore`. K
 | DACON public ficr | 0.3636186875 |
 | public rank at submission time | 245 |
 | submission title | `lgbm_006_ficr_focus.csv edit` |
-| submitter | 배추도사님 |
+| submitter |  |
 | submitted_at_kst | 2026-07-09 10:20:19 |
 
 Previous best public references:
