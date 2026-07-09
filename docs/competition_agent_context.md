@@ -553,7 +553,7 @@ Do not modify raw data or submission files unless explicitly requested.
 - Best local validation metrics: total_score=0.6033279875, one_minus_nmae=0.8673265858, ficr=0.3393293893.
 - Best DACON public metrics: total_score=0.60516, one_minus_nmae=0.86678, ficr=0.34354.
 - Public rank at submission time: 277.
-- Submitted name: 배추.
+- Submitted name: REDACTED.
 - Submitter: DACON submitter.
 - Final tuned run artifacts: `submissions/lgbm_003_tuned.csv`, `outputs/predictions/lgbm_003_tuned_test.csv`, `outputs/logs/lgbm_003_tuned_submit.json`, `outputs/models/lgbm_003_tuned_submit.joblib`.
 - Validation status: `python scripts/train_lgbm_tuned_submit.py` completed successfully, and `python scripts/validate_submission.py submissions/lgbm_003_tuned.csv` passed.
