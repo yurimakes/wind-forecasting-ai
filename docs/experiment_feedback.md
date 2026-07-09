@@ -69,6 +69,7 @@ Decision:
 | `lgbm_005_targeted_weather` | local 0.6019196756 | ensemble candidate only | Targeted weather features improved over broad aggregation but did not beat tuned LightGBM. |
 | `ens_001_simple_avg` | local 0.6037465036 | submission candidate | A 50/50 average of `lgbm_003_tuned` and `lgbm_005_targeted_weather` beat the local benchmark. |
 | `ens_001_simple_avg_submit` | public 0.6062263329 | current best public submission | 50/50 ensemble improvement transferred to public leaderboard. |
+| `ens_002_weight_search_cv` | local 0.6037465036 | validation-only reference | The best searched weight was again 0.50/0.50; no alternative weight beat the existing blend. |
 
 ---
 
@@ -351,6 +352,39 @@ Decision:
 
 ---
 
+### 11. `ens_002_weight_search_cv` - Validation-Only Weight Search
+
+Purpose:
+
+Search weights between `lgbm_003_tuned` and `lgbm_005_targeted_weather` validation predictions without training new models, creating test predictions, or creating a submission CSV.
+
+Best candidate:
+
+| Item | Value |
+|---|---:|
+| selected candidate | `ens_002_lgbm003_0.50_lgbm005_0.50` |
+| lgbm_003_tuned weight | 0.50 |
+| lgbm_005_targeted_weather weight | 0.50 |
+| local total_score | 0.6037465036 |
+| local one_minus_nmae | 0.8680552297 |
+| local ficr | 0.3394377775 |
+| exact delta vs `ens_001` reference | +0.0000000000152984 |
+
+Feedback:
+
+- The search confirmed that the existing 50/50 blend is the best point among the tested coarse and fine grids.
+- Nearby weights such as 0.60/0.40 and 0.65/0.35 remained above `lgbm_003_tuned` but did not beat the 50/50 blend.
+- The exact score is microscopically above the stored `ens_001` reference due to numeric precision, but it is practically the same candidate and same weight.
+- No new submission code should be created from this run alone.
+
+Decision:
+
+- Record as a validation-only reference.
+- Keep `ens_001_simple_avg_submit` as the current public reference.
+- Use the result as evidence that further gains likely need another model family, selective ensembling, or FICR-aware calibration rather than simple two-model weight tuning.
+
+---
+
 ## Main Lessons So Far
 
 ### 1. Validation setup matters
@@ -454,8 +488,8 @@ Outcome:
 1. Keep `ens_001_simple_avg_submit` as the current best public reference.
 2. Record `lgbm_004_weather_agg` as a failed broad aggregation attempt.
 3. Keep `lgbm_005_targeted_weather` as an ensemble candidate, not a standalone submission.
-4. Run `ens_002_weight_search_cv` next.
-5. Then consider `ens_003_include_xgb_selective` or `lgbm_006_ficr_focus`.
+4. Keep `ens_002_weight_search_cv` as a validation-only reference; the 50/50 blend remains best among searched weights.
+5. Next consider `ens_003_include_xgb_selective` or `lgbm_006_ficr_focus`.
 
 ---
 
