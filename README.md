@@ -1,4 +1,4 @@
-# DACON Wind Power Forecasting
+# Wind Power Forecasting
 
 ## Current Status
 
