@@ -31,22 +31,31 @@ The current strongest workflow uses baseline calendar + LDAPS/GFS mean features,
 
 Current best public submission:
 
+- exp_id: `lgbm_006_ficr_focus_submit`
+- model: FICR-focused postprocessed ensemble submission
+- method: 1.03 global scaling of `outputs/predictions/ens_001_simple_avg_test.csv`, clipped to group capacity
+- submission: `submissions/lgbm_006_ficr_focus.csv`
+- local validation total_score: 0.6109322217
+- local one_minus_nmae: 0.8692902276
+- local ficr: 0.3525742158
+- DACON public total_score: 0.6158048399
+- DACON public one_minus_nmae: 0.8679909923
+- DACON public ficr: 0.3636186875
+- public rank at submission time: 245
+- submitted_at: 2026-07-09 10:20:19 KST
+- submission title: `lgbm_006_ficr_focus.csv edit`
+- submitter/team display: 배추도사님
+- validation command passed: `python scripts/validate_submission.py submissions/lgbm_006_ficr_focus.csv`
+
+Previous best public reference:
+
 - exp_id: `ens_001_simple_avg_submit`
-- model: 50/50 ensemble of `lgbm_003_tuned` and `lgbm_005_targeted_weather`
-- submission: `submissions/ens_001_simple_avg.csv`
-- local validation total_score: 0.6037465036
-- local one_minus_nmae: 0.8680552297
-- local ficr: 0.3394377775
 - DACON public total_score: 0.6062263329
 - DACON public one_minus_nmae: 0.8675678207
 - DACON public ficr: 0.3448848451
 - public rank at submission time: 275
-- submitted_at: 2026-07-09 03:27:38 KST
-- submission title: `ens_001_simple_avg edit`
-- submitter/team display: 배추도사님
-- validation command passed: `python scripts/validate_submission.py submissions/ens_001_simple_avg.csv`
 
-Previous best public reference:
+Previous single-model public reference:
 
 - exp_id: `lgbm_003_tuned_submit`
 - DACON public total_score: 0.60516
@@ -117,15 +126,30 @@ Simple ensemble submission status:
 - DACON public total_score: 0.6062263329
 - DACON public one_minus_nmae: 0.8675678207
 - DACON public ficr: 0.3448848451
-- decision: current best public submission; local validation improvement transferred to public leaderboard, improving both public 1-nMAE and public FiCR over `lgbm_003_tuned_submit`. Keep private leaderboard caution.
+- decision: previous best public submission before `lgbm_006_ficr_focus_submit`; local validation improvement transferred to public leaderboard, improving both public 1-nMAE and public FiCR over `lgbm_003_tuned_submit`. Keep private leaderboard caution.
+
+FICR-focused submission status:
+
+- exp_id: `lgbm_006_ficr_focus_submit`
+- submission file: `submissions/lgbm_006_ficr_focus.csv`
+- validation experiment: `lgbm_006_ficr_focus`
+- selected candidate: `lgbm_006_global_scale_103`
+- operation: multiply all target predictions by 1.03, then clip to group capacity
+- local validation total_score: 0.6109322217
+- local one_minus_nmae: 0.8692902276
+- local ficr: 0.3525742158
+- DACON public total_score: 0.6158048399
+- DACON public one_minus_nmae: 0.8679909923
+- DACON public ficr: 0.3636186875
+- public rank at submission time: 245
+- decision: current best public submission; validation-selected scaling transferred strongly to public total_score and FiCR. Keep private leaderboard caution and avoid excessive public probing.
 
 Experiment interpretation and lessons are maintained in `docs/experiment_feedback.md`.
 
 Next planned experiments:
 
-1. `ens_002_weight_search_cv`
-2. `ens_003_include_xgb_selective`
-3. `lgbm_006_ficr_focus`
+1. Validation-only robustness checks for global scaling, such as 1.01/1.02/1.03/1.04.
+2. New FICR-focused modeling or calibration ideas that can be judged locally before deciding whether to submit another scaled variant.
 
 ## Constraints
 

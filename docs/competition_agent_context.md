@@ -567,14 +567,15 @@ Do not modify raw data or submission files unless explicitly requested.
 - Competition: DACON wind power generation forecasting AI contest.
 - Project goal: predict wind power generation for KPX groups using weather forecast data.
 - Current workflow: load raw train/test weather and label data, build baseline calendar + LDAPS/GFS mean features, use 2024 time-based local validation, train separate models for `kpx_group_1`, `kpx_group_2`, and `kpx_group_3`, clip predictions by group capacity, and validate every submission with `scripts/validate_submission.py`.
-- Current best public submission: `ens_001_simple_avg_submit`.
-- Best submission file: `submissions/ens_001_simple_avg.csv`.
-- Best local validation metrics: total_score=0.6037465036, one_minus_nmae=0.8680552297, ficr=0.3394377775.
-- Best DACON public metrics: total_score=0.6062263329, one_minus_nmae=0.8675678207, ficr=0.3448848451.
-- Public rank at submission time: 275.
-- DACON submission title: `ens_001_simple_avg edit`.
-- Submitted_at: 2026-07-09 03:27:38 KST.
+- Current best public submission: `lgbm_006_ficr_focus_submit`.
+- Best submission file: `submissions/lgbm_006_ficr_focus.csv`.
+- Best local validation metrics: total_score=0.6109322217, one_minus_nmae=0.8692902276, ficr=0.3525742158.
+- Best DACON public metrics: total_score=0.6158048399, one_minus_nmae=0.8679909923, ficr=0.3636186875.
+- Public rank at submission time: 245.
+- DACON submission title: `lgbm_006_ficr_focus.csv edit`.
+- Submitted_at: 2026-07-09 10:20:19 KST.
 - Submitter/team display: 배추도사님.
+- Previous best public reference: `ens_001_simple_avg_submit` with public total_score=0.6062263329, public one_minus_nmae=0.8675678207, public ficr=0.3448848451, rank 275 at submission time.
 - Previous best public reference: `lgbm_003_tuned_submit` with public total_score=0.60516, public one_minus_nmae=0.86678, public ficr=0.34354, rank 277 at submission time.
 - `lgbm_005_targeted_weather`: run_id=`lgbm_005_targeted_weather_valid_2024`; script=`scripts/train_lgbm_targeted_weather_cv.py`; feature function=`build_targeted_weather_feature_matrix` in `src/dacon_wind/features.py`; model=LightGBM tuned grid; features=baseline calendar + LDAPS/GFS mean features + targeted weather features.
 - `lgbm_005_targeted_weather` targeted features: near-surface and hub-height wind speeds; vertical-shear differences and ratios; GFS gust margins; LDAPS/GFS 10m wind component and speed differences.
@@ -582,6 +583,9 @@ Do not modify raw data or submission files unless explicitly requested.
 - `lgbm_005_targeted_weather` decision: no standalone submission; keep as an ensemble candidate. It recovered most of the loss from `lgbm_004_weather_agg`, slightly improved one_minus_nmae over `lgbm_003_tuned`, but lower FICR kept total_score below `lgbm_003_tuned`.
 - `ens_001_simple_avg`: validation run_id=`ens_001_simple_avg_valid_2024`; best validation candidate=`ens_001_lgbm003_lgbm005_avg`; validation ensemble=0.5*`lgbm_003_tuned` + 0.5*`lgbm_005_targeted_weather`.
 - `ens_001_simple_avg` local metrics: total_score=0.6037465036, one_minus_nmae=0.8680552297, ficr=0.3394377775; decision=submission candidate.
-- `ens_001_simple_avg_submit`: submission file=`submissions/ens_001_simple_avg.csv`; public total_score=0.6062263329, public one_minus_nmae=0.8675678207, public ficr=0.3448848451; current best public submission.
+- `ens_001_simple_avg_submit`: submission file=`submissions/ens_001_simple_avg.csv`; public total_score=0.6062263329, public one_minus_nmae=0.8675678207, public ficr=0.3448848451; previous best public submission before `lgbm_006_ficr_focus_submit`.
 - `ens_001_simple_avg_submit` interpretation: local validation improvement transferred to the public leaderboard; both public 1-NMAE and public FiCR improved over `lgbm_003_tuned_submit`; keep caution that the final target is the private leaderboard.
-- Current direction: keep `ens_001_simple_avg_submit` as the current best public reference, run `ens_002_weight_search_cv` next, then consider selective XGB ensemble (`ens_003_include_xgb_selective`) or FICR-focused experiment (`lgbm_006_ficr_focus`).
+- `lgbm_006_ficr_focus`: validation experiment selected `lgbm_006_global_scale_103`, multiplying all target predictions by 1.03 and clipping to group capacity; local total_score=0.6109322217, one_minus_nmae=0.8692902276, ficr=0.3525742158.
+- `lgbm_006_ficr_focus_submit`: submission file=`submissions/lgbm_006_ficr_focus.csv`; public total_score=0.6158048399, public one_minus_nmae=0.8679909923, public ficr=0.3636186875; rank 245 at submission time; current best public submission.
+- `lgbm_006_ficr_focus_submit` interpretation: validation-selected 1.03 global scaling transferred strongly to public leaderboard, improving total_score by +0.0095785070, FiCR by +0.0187338424, and 1-NMAE by +0.0004231716 versus `ens_001_simple_avg_submit`.
+- Current direction: keep `lgbm_006_ficr_focus_submit` as the current best public reference, avoid excessive public probing, and next consider validation-only robustness checks around scaling, such as 1.01/1.02/1.03/1.04, before deciding whether to submit another scaled variant.
