@@ -78,6 +78,7 @@ Decision:
 | `lgbm_006_ficr_focus` | local 0.6109322217 | improved submission candidate | A simple 1.03 global scale improved both local total_score and FICR on the 2024 validation prediction. |
 | `lgbm_006_ficr_focus_submit` | public 0.6158048399 | current best public submission | The 1.03 scaled and capacity-clipped submission improved public total_score and FiCR strongly over `ens_001_simple_avg_submit`. |
 | `lgbm_007_scale_robustness_cv` | local 0.6180968450 | possible submission candidate | Larger validation scales up to 1.08 kept improving FICR and total_score, so the upscaling effect is not isolated to 1.03. |
+| `lgbm_008_scale_upper_sweep_cv` | local 0.6184267418 | possible conservative submission candidate | The upper sweep peaked at scale 1.10 for both total_score and FICR, while larger scales degraded NMAE enough to lower total_score. |
 
 ---
 
@@ -532,6 +533,40 @@ Decision:
 
 ---
 
+### 16. `lgbm_008_scale_upper_sweep_cv` - Validation-Only Upper Scale Sweep
+
+Purpose:
+
+Extend the global scale robustness check above 1.08 using `outputs/predictions/ens_001_simple_avg_valid_2024_best.csv`.
+
+Best candidate:
+
+| Item | Value |
+|---|---:|
+| selected best by total_score | 1.10 |
+| selected best by FICR | 1.10 |
+| local total_score | 0.6184267418 |
+| local one_minus_nmae | 0.8671491370 |
+| local ficr | 0.3697043467 |
+| beats `lgbm_007` scale 1.08 total_score | true |
+| beats `lgbm_007` scale 1.08 FICR | true |
+
+Feedback:
+
+- Total_score and FICR both peaked at scale 1.10 in this sweep.
+- Scale 1.095 was close behind and also beat the 1.08 reference on both total_score and FICR.
+- Higher scales from 1.12 through 1.16 reduced one_minus_nmae enough that total_score declined.
+- This is not an upper-bound artifact through 1.16, but scale 1.10 is still meaningfully more aggressive than the public-proven 1.03 submission.
+- This run created only validation artifacts and did not create a submission CSV.
+
+Decision:
+
+- Mark scale 1.10 as a possible conservative submission candidate by validation rule.
+- Do not create final submission code yet.
+- Avoid another public submission unless the validation gain over 1.08 is judged meaningful enough against submission-budget and public-overfit risk.
+
+---
+
 ## Main Lessons So Far
 
 ### 1. Validation setup matters
@@ -639,7 +674,8 @@ Outcome:
 5. Keep `ens_003_include_xgb_selective` as a validation-only reference; small XGB weights did not improve the blend.
 6. `lgbm_006_ficr_focus_submit` is the current best public submission after public total_score=0.6158048399.
 7. `lgbm_007_scale_robustness_cv` shows that larger validation scales up to 1.08 improve total_score and FICR, but this should be treated cautiously because 1.03 is the public-proven current best.
-8. Next consider a conservative validation-only follow-up around larger scales, or new FICR-focused modeling, before any further public submission.
+8. `lgbm_008_scale_upper_sweep_cv` peaked at scale 1.10 rather than continuing to improve through 1.16, making 1.10 a possible conservative submission candidate if another public attempt is deliberately chosen.
+9. Next consider either a narrow validation-only check around 1.095-1.105 or new FICR-focused modeling before any further public submission.
 
 ---
 
