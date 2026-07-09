@@ -77,6 +77,7 @@ Decision:
 | `ens_003_include_xgb_selective` | local 0.6037465036 | validation-only reference | Adding small XGB weights did not beat the current 50/50 LightGBM blend. |
 | `lgbm_006_ficr_focus` | local 0.6109322217 | improved submission candidate | A simple 1.03 global scale improved both local total_score and FICR on the 2024 validation prediction. |
 | `lgbm_006_ficr_focus_submit` | public 0.6158048399 | current best public submission | The 1.03 scaled and capacity-clipped submission improved public total_score and FiCR strongly over `ens_001_simple_avg_submit`. |
+| `lgbm_007_scale_robustness_cv` | local 0.6180968450 | possible submission candidate | Larger validation scales up to 1.08 kept improving FICR and total_score, so the upscaling effect is not isolated to 1.03. |
 
 ---
 
@@ -497,6 +498,40 @@ Decision:
 
 ---
 
+### 15. `lgbm_007_scale_robustness_cv` - Validation-Only Scale Robustness
+
+Purpose:
+
+Check whether the global scaling effect found in `lgbm_006_ficr_focus` is robust around scale 1.03 using `outputs/predictions/ens_001_simple_avg_valid_2024_best.csv`.
+
+Best candidate:
+
+| Item | Value |
+|---|---:|
+| selected best by total_score | 1.08 |
+| selected best by FICR | 1.08 |
+| local total_score | 0.6180968450 |
+| local one_minus_nmae | 0.8684623965 |
+| local ficr | 0.3677312936 |
+| beats lgbm_006 scale 1.03 total_score | true |
+| beats lgbm_006 scale 1.03 FICR | true |
+
+Feedback:
+
+- The validation upscaling effect is robust across the tested region, not just a one-point artifact at 1.03.
+- Scales 1.035, 1.04, 1.05, 1.06, 1.07, and 1.08 all beat the lgbm_006 validation 1.03 reference on both total_score and FICR.
+- In this sweep, FICR continued to improve through 1.08, while one_minus_nmae peaked around 1.04 and then declined slightly.
+- The best validation scale 1.08 has a much higher FICR than 1.03, but it is also farther from the public-proven scale, so it carries public/private robustness risk.
+- This run created only validation artifacts and did not create a submission CSV.
+
+Decision:
+
+- Mark as a possible submission candidate by validation rule.
+- Keep `lgbm_006_ficr_focus_submit` as the current public best until a deliberate decision is made to spend another public submission attempt.
+- If a larger scale is considered for submission later, prefer a conservative choice or a narrow follow-up validation-only sweep before creating final submission code.
+
+---
+
 ## Main Lessons So Far
 
 ### 1. Validation setup matters
@@ -603,7 +638,8 @@ Outcome:
 4. Keep `ens_002_weight_search_cv` as a validation-only reference; the 50/50 blend remains best among searched weights.
 5. Keep `ens_003_include_xgb_selective` as a validation-only reference; small XGB weights did not improve the blend.
 6. `lgbm_006_ficr_focus_submit` is the current best public submission after public total_score=0.6158048399.
-7. Next consider validation-only robustness checks for the global upscaling effect, such as 1.01/1.02/1.03/1.04, or new FICR-focused modeling before any further public submission.
+7. `lgbm_007_scale_robustness_cv` shows that larger validation scales up to 1.08 improve total_score and FICR, but this should be treated cautiously because 1.03 is the public-proven current best.
+8. Next consider a conservative validation-only follow-up around larger scales, or new FICR-focused modeling, before any further public submission.
 
 ---
 
