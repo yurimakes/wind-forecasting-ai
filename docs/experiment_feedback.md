@@ -72,6 +72,7 @@ Decision:
 | `ens_002_weight_search_cv` | local 0.6037465036 | validation-only reference | The best searched weight was again 0.50/0.50; no alternative weight beat the existing blend. |
 | `ens_003_include_xgb_selective` | local 0.6037465036 | validation-only reference | Adding small XGB weights did not beat the current 50/50 LightGBM blend. |
 | `lgbm_006_ficr_focus` | local 0.6109322217 | improved submission candidate | A simple 1.03 global scale improved both local total_score and FICR on the 2024 validation prediction. |
+| `lgbm_006_ficr_focus_submit` | local reference 0.6109322217 | ready for DACON upload | Created the 1.03 scaled and capacity-clipped submission from the current best ensemble test prediction; public score pending. |
 
 ---
 
@@ -452,6 +453,41 @@ Decision:
 
 ---
 
+### 14. `lgbm_006_ficr_focus_submit` - FICR Postprocessed Submission File
+
+Status:
+
+- Created `outputs/predictions/lgbm_006_ficr_focus_test.csv`.
+- Created `submissions/lgbm_006_ficr_focus.csv`.
+- Created `outputs/logs/lgbm_006_ficr_focus_submit.json`.
+- Applied the validation-selected `lgbm_006_global_scale_103` postprocessing to `outputs/predictions/ens_001_simple_avg_test.csv`.
+- Multiplied all target predictions by 1.03 and clipped each group to its capacity.
+- Verified `forecast_id` and `forecast_kst_dtm` alignment with `data/raw/sample_submission.csv`.
+- `python scripts/validate_submission.py submissions/lgbm_006_ficr_focus.csv` passed.
+
+Reference metrics:
+
+| Metric | Value |
+|---|---:|
+| validation total_score reference | 0.6109322217 |
+| validation one_minus_nmae reference | 0.8692902276 |
+| validation ficr reference | 0.3525742158 |
+| public total_score | pending |
+
+Feedback:
+
+- The submission file is ready for DACON upload.
+- This is a postprocessing-only submission; no new models were trained.
+- The source public reference is `ens_001_simple_avg_submit` with public total_score=0.6062263329.
+- Caution: global 1.03 scaling may be validation-calibration and should be checked on public/private.
+
+Decision:
+
+- Ready for DACON upload.
+- Do not treat the public result alone as final proof of private-leaderboard robustness.
+
+---
+
 ## Main Lessons So Far
 
 ### 1. Validation setup matters
@@ -557,7 +593,7 @@ Outcome:
 3. Keep `lgbm_005_targeted_weather` as an ensemble candidate, not a standalone submission.
 4. Keep `ens_002_weight_search_cv` as a validation-only reference; the 50/50 blend remains best among searched weights.
 5. Keep `ens_003_include_xgb_selective` as a validation-only reference; small XGB weights did not improve the blend.
-6. Treat `lgbm_006_ficr_focus` as an improved validation submission candidate, but convert it to submission code only when explicitly requested.
+6. `lgbm_006_ficr_focus_submit` has been created and is ready for DACON upload; public score is pending.
 7. Next consider a new model family or a robustness check for the global upscaling effect.
 
 ---
