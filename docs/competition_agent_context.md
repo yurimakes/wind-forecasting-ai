@@ -554,7 +554,7 @@ Do not modify raw data or submission files unless explicitly requested.
 - Best DACON public metrics: total_score=0.60516, one_minus_nmae=0.86678, ficr=0.34354.
 - Public rank at submission time: 277.
 - Submitted name: 배추.
-- Submitter: 배추도사님.
+- Submitter: DACON submitter.
 - Final tuned run artifacts: `submissions/lgbm_003_tuned.csv`, `outputs/predictions/lgbm_003_tuned_test.csv`, `outputs/logs/lgbm_003_tuned_submit.json`, `outputs/models/lgbm_003_tuned_submit.joblib`.
 - Validation status: `python scripts/train_lgbm_tuned_submit.py` completed successfully, and `python scripts/validate_submission.py submissions/lgbm_003_tuned.csv` passed.
 - CatBoost experiment: `cat_001_baseline` used the same baseline feature matrix with no wind-derived features and scored local total_score=0.5980575665, one_minus_nmae=0.8672565037, ficr=0.3288586294. It is lower than `lgbm_003_tuned_submit`, so it is an ensemble candidate rather than a standalone submission candidate.
@@ -574,7 +574,7 @@ Do not modify raw data or submission files unless explicitly requested.
 - Public rank at submission time: 245.
 - DACON submission title: `lgbm_006_ficr_focus.csv edit`.
 - Submitted_at: 2026-07-09 10:20:19 KST.
-- Submitter/team display: 배추도사님.
+- Submitter/team display: DACON submitter.
 - Previous best public reference: `ens_001_simple_avg_submit` with public total_score=0.6062263329, public one_minus_nmae=0.8675678207, public ficr=0.3448848451, rank 275 at submission time.
 - Previous best public reference: `lgbm_003_tuned_submit` with public total_score=0.60516, public one_minus_nmae=0.86678, public ficr=0.34354, rank 277 at submission time.
 - `lgbm_005_targeted_weather`: run_id=`lgbm_005_targeted_weather_valid_2024`; script=`scripts/train_lgbm_targeted_weather_cv.py`; feature function=`build_targeted_weather_feature_matrix` in `src/dacon_wind/features.py`; model=LightGBM tuned grid; features=baseline calendar + LDAPS/GFS mean features + targeted weather features.

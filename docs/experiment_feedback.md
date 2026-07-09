@@ -325,7 +325,7 @@ Status:
 - Created ensemble test predictions at `outputs/predictions/ens_001_simple_avg_test.csv`.
 - Saved run logs and targeted-weather model artifact.
 - `python scripts/validate_submission.py submissions/ens_001_simple_avg.csv` passed.
-- Uploaded to DACON as `ens_001_simple_avg edit` by 배추도사님 at 2026-07-09 03:27:38 KST.
+- Uploaded to DACON as `ens_001_simple_avg edit` by DACON submitter at 2026-07-09 03:27:38 KST.
 
 Reference metrics:
 
@@ -485,7 +485,7 @@ Reference metrics:
 
 Feedback:
 
-- Uploaded to DACON as `lgbm_006_ficr_focus.csv edit` by 배추도사님 at 2026-07-09 10:20:19 KST.
+- Uploaded to DACON as `lgbm_006_ficr_focus.csv edit` by DACON submitter at 2026-07-09 10:20:19 KST.
 - This is a postprocessing-only submission; no new models were trained.
 - The source public reference was `ens_001_simple_avg_submit` with public total_score=0.6062263329, public one_minus_nmae=0.8675678207, public ficr=0.3448848451, and rank 275 at submission time.
 - The 1.03 scaling improved public total_score by +0.0095785070, public FiCR by +0.0187338424, and public 1-NMAE by +0.0004231716 versus `ens_001_simple_avg_submit`.
