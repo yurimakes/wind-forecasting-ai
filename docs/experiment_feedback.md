@@ -70,6 +70,7 @@ Decision:
 | `ens_001_simple_avg` | local 0.6037465036 | submission candidate | A 50/50 average of `lgbm_003_tuned` and `lgbm_005_targeted_weather` beat the local benchmark. |
 | `ens_001_simple_avg_submit` | public 0.6062263329 | current best public submission | 50/50 ensemble improvement transferred to public leaderboard. |
 | `ens_002_weight_search_cv` | local 0.6037465036 | validation-only reference | The best searched weight was again 0.50/0.50; no alternative weight beat the existing blend. |
+| `ens_003_include_xgb_selective` | local 0.6037465036 | validation-only reference | Adding small XGB weights did not beat the current 50/50 LightGBM blend. |
 
 ---
 
@@ -385,6 +386,38 @@ Decision:
 
 ---
 
+### 12. `ens_003_include_xgb_selective` - Validation-Only Selective XGB Ensemble
+
+Purpose:
+
+Test whether adding `xgb_001_baseline` at small weights improves over the current 50/50 LightGBM ensemble.
+
+Best candidate:
+
+| Item | Value |
+|---|---:|
+| selected candidate | `ens_003_reference_lgbm003_lgbm005_50_50` |
+| XGB weight | 0.00 |
+| local total_score | 0.6037465036 |
+| local one_minus_nmae | 0.8680552297 |
+| local ficr | 0.3394377775 |
+| XGB candidates beat reference | false |
+
+Feedback:
+
+- The 50/50 `lgbm_003_tuned` + `lgbm_005_targeted_weather` reference remained the best candidate.
+- The best XGB candidate was `ens_003_xgb005_b` at total_score=0.6035233959, below the reference.
+- Some XGB candidates still beat the single-model `lgbm_003_tuned` baseline, but none improved the current ensemble.
+- Adding XGB reduced FICR versus the reference in every tested candidate, so this did not provide a FICR-diversity case.
+
+Decision:
+
+- Validation-only reference.
+- Keep `ens_001_simple_avg_submit` as the current best public submission.
+- Do not create final submission code from this experiment.
+
+---
+
 ## Main Lessons So Far
 
 ### 1. Validation setup matters
@@ -489,7 +522,8 @@ Outcome:
 2. Record `lgbm_004_weather_agg` as a failed broad aggregation attempt.
 3. Keep `lgbm_005_targeted_weather` as an ensemble candidate, not a standalone submission.
 4. Keep `ens_002_weight_search_cv` as a validation-only reference; the 50/50 blend remains best among searched weights.
-5. Next consider `ens_003_include_xgb_selective` or `lgbm_006_ficr_focus`.
+5. Keep `ens_003_include_xgb_selective` as a validation-only reference; small XGB weights did not improve the blend.
+6. Next consider `lgbm_006_ficr_focus` or a new model family with stronger FICR behavior.
 
 ---
 
