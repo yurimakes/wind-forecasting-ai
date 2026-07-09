@@ -567,6 +567,43 @@ Decision:
 
 ---
 
+### 17. `lgbm_008_scale_110_submit` - Scale 1.10 Submission File
+
+Status:
+
+- Created `outputs/predictions/lgbm_008_scale_110_test.csv`.
+- Created `submissions/lgbm_008_scale_110.csv`.
+- Created `outputs/logs/lgbm_008_scale_110_submit.json`.
+- Applied scale 1.10 to `outputs/predictions/ens_001_simple_avg_test.csv`.
+- Clipped each target to group capacity.
+- Verified `forecast_id` and `forecast_kst_dtm` alignment with `data/raw/sample_submission.csv`.
+- `python scripts/validate_submission.py submissions/lgbm_008_scale_110.csv` passed.
+- Ready for DACON upload.
+
+Reference metrics:
+
+| Metric | Value |
+|---|---:|
+| validation total_score reference | 0.6184267418 |
+| validation one_minus_nmae reference | 0.8671491370 |
+| validation ficr reference | 0.3697043467 |
+| public total_score | pending |
+
+Feedback:
+
+- This is a postprocessing-only submission; no new models were trained.
+- The selected 1.10 scale came from `lgbm_008_scale_upper_sweep_cv`, where it beat the `lgbm_007` 1.08 scale on both total_score and FICR.
+- Scale 1.10 was the peak in the 1.075-1.16 upper sweep, not the upper boundary.
+- This submission is more aggressive than the public-proven 1.03 scale used by `lgbm_006_ficr_focus_submit`.
+- Only one 1.10 submission is recommended to avoid excessive public probing and public leaderboard overfit risk.
+
+Decision:
+
+- Ready for DACON upload as a deliberate single scaled-variant probe.
+- Keep `lgbm_006_ficr_focus_submit` as the current public-proven reference until public results are known.
+
+---
+
 ## Main Lessons So Far
 
 ### 1. Validation setup matters
