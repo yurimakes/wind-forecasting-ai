@@ -71,6 +71,7 @@ Decision:
 | `ens_001_simple_avg_submit` | public 0.6062263329 | current best public submission | 50/50 ensemble improvement transferred to public leaderboard. |
 | `ens_002_weight_search_cv` | local 0.6037465036 | validation-only reference | The best searched weight was again 0.50/0.50; no alternative weight beat the existing blend. |
 | `ens_003_include_xgb_selective` | local 0.6037465036 | validation-only reference | Adding small XGB weights did not beat the current 50/50 LightGBM blend. |
+| `lgbm_006_ficr_focus` | local 0.6109322217 | improved submission candidate | A simple 1.03 global scale improved both local total_score and FICR on the 2024 validation prediction. |
 
 ---
 
@@ -418,6 +419,39 @@ Decision:
 
 ---
 
+### 13. `lgbm_006_ficr_focus` - Validation-Only FICR Postprocessing
+
+Purpose:
+
+Test whether simple postprocessing of `outputs/predictions/ens_001_simple_avg_valid_2024_best.csv` can improve local FICR or total_score without training models, creating test predictions, or creating a submission CSV.
+
+Best candidate:
+
+| Item | Value |
+|---|---:|
+| selected best by total_score | `lgbm_006_global_scale_103` |
+| selected best by FICR | `lgbm_006_global_scale_103` |
+| local total_score | 0.6109322217 |
+| local one_minus_nmae | 0.8692902276 |
+| local ficr | 0.3525742158 |
+| beats `ens_001` validation total_score | true |
+| beats `ens_001` validation FICR | true |
+
+Feedback:
+
+- A global 1.03 scale was the strongest tested postprocessing by both total_score and FICR.
+- The improvement is large for a validation-only calibration, so it should be treated as a submission candidate but checked carefully for private-leaderboard robustness.
+- The direction suggests the current validation ensemble may be underpredicting generation in a way that affects FICR thresholds.
+- Conservative high-end shrink and downscaling hurt FICR, while small upscaling generally helped.
+
+Decision:
+
+- Mark as an improved submission candidate by the predefined validation rule.
+- Do not create final submission code yet.
+- Keep `ens_001_simple_avg_submit` as the current public submission until this postprocessing is explicitly converted into a submission workflow and validated.
+
+---
+
 ## Main Lessons So Far
 
 ### 1. Validation setup matters
@@ -523,7 +557,8 @@ Outcome:
 3. Keep `lgbm_005_targeted_weather` as an ensemble candidate, not a standalone submission.
 4. Keep `ens_002_weight_search_cv` as a validation-only reference; the 50/50 blend remains best among searched weights.
 5. Keep `ens_003_include_xgb_selective` as a validation-only reference; small XGB weights did not improve the blend.
-6. Next consider `lgbm_006_ficr_focus` or a new model family with stronger FICR behavior.
+6. Treat `lgbm_006_ficr_focus` as an improved validation submission candidate, but convert it to submission code only when explicitly requested.
+7. Next consider a new model family or a robustness check for the global upscaling effect.
 
 ---
 
