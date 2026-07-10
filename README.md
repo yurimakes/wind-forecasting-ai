@@ -2,7 +2,7 @@
 
 ## Current Status
 
-Updated: 2026-07-09 KST
+Updated: 2026-07-10 KST
 
 This project is for the DACON wind power generation forecasting AI contest. The goal is to predict wind power generation for KPX groups using weather forecast data.
 
@@ -21,35 +21,38 @@ Raw data and generated outputs are not committed when ignored by `.gitignore`. K
 
 | Field | Value |
 |---|---|
-| exp_id | `lgbm_006_ficr_focus_submit` |
-| model | FICR-focused postprocessed ensemble submission |
-| features | 1.03 global scaling of `ens_001_simple_avg_test` predictions, capacity clipped |
-| submission file | `submissions/lgbm_006_ficr_focus.csv` |
-| local validation total_score | 0.6109322217 |
-| local one_minus_nmae | 0.8692902276 |
-| local ficr | 0.3525742158 |
-| DACON public total_score | 0.6158048399 |
-| DACON public one_minus_nmae | 0.8679909923 |
-| DACON public ficr | 0.3636186875 |
-| public rank at submission time | 245 |
-| submission title | `lgbm_006_ficr_focus.csv edit` |
-| submitter |  |
-| submitted_at_kst | 2026-07-09 10:20:19 |
+| exp_id | `lgbm_008_scale_110_submit` |
+| model | scale-1.10 postprocessed ensemble submission |
+| features | scale 1.10 applied to `ens_001_simple_avg_test` predictions, capacity clipped |
+| submission file | `submissions/lgbm_008_scale_110.csv` |
+| local validation total_score | 0.6184267418 |
+| local one_minus_nmae | 0.8671491370 |
+| local ficr | 0.3697043467 |
+| DACON public total_score | 0.6211026154 |
+| DACON public one_minus_nmae | 0.8634833072 |
+| DACON public ficr | 0.3787219236 |
+| public rank at submission time | 148 |
+| submission title | `0710_v1 edit` |
+| submitted_at_kst | 2026-07-10 17:54:24 |
 
 Previous best public references:
 
 - `ens_001_simple_avg_submit`: public total_score=0.6062263329, public one_minus_nmae=0.8675678207, public ficr=0.3448848451, rank 275 at submission time.
 - `lgbm_003_tuned_submit`: public total_score=0.60516, public one_minus_nmae=0.86678, public ficr=0.34354.
 
+Previous best public reference:
+
+- `lgbm_006_ficr_focus_submit`: public total_score=0.6158048399, public one_minus_nmae=0.8679909923, public ficr=0.3636186875, rank 245 at submission time.
+
 Generated artifacts from the current best public submission run:
 
-- `submissions/lgbm_006_ficr_focus.csv`
-- `outputs/predictions/lgbm_006_ficr_focus_test.csv`
-- `outputs/logs/lgbm_006_ficr_focus_submit.json`
+- `submissions/lgbm_008_scale_110.csv`
+- `outputs/predictions/lgbm_008_scale_110_test.csv`
+- `outputs/logs/lgbm_008_scale_110_submit.json`
 
 Validation status:
 
-- `python scripts/validate_submission.py submissions/lgbm_006_ficr_focus.csv` passed.
+- `python scripts/validate_submission.py submissions/lgbm_008_scale_110.csv` passed.
 
 ## Experiment Summary
 
@@ -63,7 +66,8 @@ Validation status:
 | `lgbm_005_targeted_weather` | LightGBM tuned grid | baseline calendar + LDAPS/GFS mean features + targeted weather features | 0.6019196756 | - | ensemble candidate, not standalone submission |
 | `ens_001_simple_avg` | validation-only simple ensemble | 0.5*`lgbm_003_tuned` + 0.5*`lgbm_005_targeted_weather` | 0.6037465036 | - | selected submission candidate |
 | `ens_001_simple_avg_submit` | 50/50 ensemble submission | 0.5*`lgbm_003_tuned` + 0.5*`lgbm_005_targeted_weather` | 0.6037465036 | 0.6062263329 | previous best public submission |
-| `lgbm_006_ficr_focus_submit` | FICR-focused postprocessed ensemble submission | 1.03 global scaling of `ens_001_simple_avg_test` predictions, capacity clipped | 0.6109322217 | 0.6158048399 | current best public submission |
+| `lgbm_006_ficr_focus_submit` | FICR-focused postprocessed ensemble submission | 1.03 global scaling of `ens_001_simple_avg_test` predictions, capacity clipped | 0.6109322217 | 0.6158048399 | previous best public submission |
+| `lgbm_008_scale_110_submit` | scale-1.10 postprocessed ensemble submission | 1.10 global scaling of `ens_001_simple_avg_test` predictions, capacity clipped | 0.6184267418 | 0.6211026154 | current best public submission |
 | `cat_001_baseline` | CatBoost baseline | baseline calendar + LDAPS/GFS mean features | 0.5980575665 | - | ensemble candidate, no submission yet |
 | `xgb_001_baseline` | XGBoost baseline | baseline calendar + LDAPS/GFS mean features | 0.5988239498 | - | ensemble candidate, no submission yet |
 
@@ -73,7 +77,7 @@ Important lessons so far:
 - Broad row-wise LDAPS/GFS aggregation in `lgbm_004_weather_agg` degraded performance, likely because it mixed weather variables with different physical meanings and units.
 - Targeted weather features in `lgbm_005_targeted_weather` recovered most of the `lgbm_004_weather_agg` loss and slightly improved one_minus_nmae over `lgbm_003_tuned`, but lower FICR kept the standalone total_score below `lgbm_003_tuned`.
 - `lgbm_005_targeted_weather` is useful ensemble diversity: the 50/50 `ens_001_simple_avg` validation improvement transferred to the DACON public leaderboard.
-- `lgbm_006_ficr_focus_submit` is the current best public submission; validation-selected 1.03 global scaling of `ens_001_simple_avg_test` predictions transferred strongly, especially on public FiCR.
+- `lgbm_008_scale_110_submit` is the current best public submission; validation-selected 1.10 global scaling of `ens_001_simple_avg_test` predictions improved public total_score mainly through FiCR, while public one_minus_nmae dropped versus `lgbm_006_ficr_focus_submit`.
 - Tuned LightGBM with smaller trees performed better.
 - Current best LightGBM setting: `num_leaves=15`, `min_child_samples=20`, `learning_rate=0.03`, `n_estimators=1000`, `reg_lambda=5.0`.
 - CatBoost baseline did not beat tuned LightGBM but may be useful later for ensemble diversity.
@@ -94,9 +98,10 @@ The tuned submission uses separate LightGBM models for the three KPX groups, bas
 
 ## Next Experiments
 
-`lgbm_006_ficr_focus_submit` is the current best public submission, with public total_score=0.6158048399. It uses 1.03 global scaling of `ens_001_simple_avg_test` predictions, clipped to group capacity. `ens_001_simple_avg_submit` remains the pre-scaling ensemble reference, and `lgbm_003_tuned_submit` remains the main single-model comparison baseline. CatBoost and XGBoost are currently ensemble candidates, not standalone submission candidates. Detailed qualitative feedback and experiment lessons are documented in `docs/experiment_feedback.md`.
+`lgbm_008_scale_110_submit` is the current best public submission, with public total_score=0.6211026154, public one_minus_nmae=0.8634833072, and public ficr=0.3787219236. It uses scale 1.10 applied to `ens_001_simple_avg_test` predictions, clipped to group capacity. The public gain versus `lgbm_006_ficr_focus_submit` is FiCR-driven, while public one_minus_nmae decreased. `ens_001_simple_avg_submit` remains the pre-scaling ensemble reference, and `lgbm_003_tuned_submit` remains the main single-model comparison baseline. CatBoost and XGBoost are currently ensemble candidates, not standalone submission candidates. Detailed qualitative feedback and experiment lessons are documented in `docs/experiment_feedback.md`.
 
 Planned experiments:
 
-1. Validation-only robustness checks for global scaling, such as 1.01/1.02/1.03/1.04.
-2. New FICR-focused modeling or calibration that does not rely on repeated public probing.
+1. Keep `lgbm_008_scale_110_submit` as the current public reference.
+2. Avoid more public probing today.
+3. Run validation-only modeling or feature experiments before considering any further scale submissions.

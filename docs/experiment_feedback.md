@@ -1,6 +1,6 @@
 # Experiment Feedback
 
-Updated: 2026-07-09 KST
+Updated: 2026-07-10 KST
 
 This file records qualitative feedback, experiment interpretation, failure analysis, and next actions for the DACON wind power generation forecasting project.
 
@@ -13,33 +13,32 @@ Use this file together with `docs/experiment_log.md`:
 
 ## Current Reference Baseline
 
-### `lgbm_006_ficr_focus_submit`
+### `lgbm_008_scale_110_submit`
 
 Current best public submission.
 
 | Item | Value |
 |---|---:|
-| local total_score | 0.6109322217 |
-| local one_minus_nmae | 0.8692902276 |
-| local ficr | 0.3525742158 |
-| DACON public total_score | 0.6158048399 |
-| DACON public one_minus_nmae | 0.8679909923 |
-| DACON public ficr | 0.3636186875 |
-| public rank at submission time | 245 |
+| local total_score | 0.6184267418 |
+| local one_minus_nmae | 0.8671491370 |
+| local ficr | 0.3697043467 |
+| DACON public total_score | 0.6211026154 |
+| DACON public one_minus_nmae | 0.8634833072 |
+| DACON public ficr | 0.3787219236 |
+| public rank at submission time | 148 |
 
 Key interpretation:
 
-- The 1.03 globally scaled and capacity-clipped `ens_001_simple_avg_test` prediction is the current public reference.
-- The validation-selected 1.03 global scaling transferred strongly to the public leaderboard.
-- Public total_score improved by +0.0095785070 versus `ens_001_simple_avg_submit`.
-- Public FiCR improved by +0.0187338424 versus `ens_001_simple_avg_submit`.
-- Public 1-NMAE also improved by +0.0004231716 versus `ens_001_simple_avg_submit`.
-- `lgbm_005_targeted_weather` was weak standalone but useful in the 50/50 ensemble.
+- The 1.10 globally scaled and capacity-clipped `ens_001_simple_avg_test` prediction is the current public reference.
+- Public total_score improved by +0.0052977755 versus `lgbm_006_ficr_focus_submit`.
+- Public FiCR improved by +0.0151032361 versus `lgbm_006_ficr_focus_submit`.
+- Public 1-NMAE decreased by -0.0045076851 versus `lgbm_006_ficr_focus_submit`.
+- The public score increase is mainly FiCR-driven.
 - Keep caution that the final target is the private leaderboard, not public score alone.
-- Avoid excessive public probing because repeated public feedback can overfit model selection to the public split.
+- Avoid more public probing today because repeated public feedback can overfit model selection to the public split.
+- `lgbm_006_ficr_focus_submit` remains the previous best public reference.
+- `ens_001_simple_avg_submit` remains the pre-scaling ensemble reference.
 - `lgbm_003_tuned_submit` remains the main single-model comparison baseline.
-- Previous best public reference: `ens_001_simple_avg_submit` with public total_score=0.6062263329, public one_minus_nmae=0.8675678207, public ficr=0.3448848451, rank 275 at submission time.
-- Previous best public reference: `lgbm_003_tuned_submit` with public total_score=0.60516, public one_minus_nmae=0.86678, public ficr=0.34354, rank 277 at submission time.
 - The best LightGBM setting used a relatively small tree structure:
   - `num_leaves=15`
   - `min_child_samples=20`
@@ -47,12 +46,13 @@ Key interpretation:
   - `n_estimators=1000`
   - `reg_lambda=5.0`
 - Smaller, more regularized trees appear better than larger, more complex trees for the current feature set.
-- Use `lgbm_006_ficr_focus_submit` as the public reference, `ens_001_simple_avg_submit` as the pre-scaling ensemble reference, and `lgbm_003_tuned_submit` as the single-model benchmark.
+- Use `lgbm_008_scale_110_submit` as the public reference, `lgbm_006_ficr_focus_submit` as the previous scaled public reference, and `lgbm_003_tuned_submit` as the single-model benchmark.
 
 Decision:
 
-- Keep `lgbm_006_ficr_focus_submit` as the current best public submission.
+- Keep `lgbm_008_scale_110_submit` as the current best public submission.
 - Do not overfit to public leaderboard feedback.
+- Next work should be validation-only modeling or feature experiments, not more scale submissions.
 
 ---
 
@@ -76,9 +76,10 @@ Decision:
 | `ens_002_weight_search_cv` | local 0.6037465036 | validation-only reference | The best searched weight was again 0.50/0.50; no alternative weight beat the existing blend. |
 | `ens_003_include_xgb_selective` | local 0.6037465036 | validation-only reference | Adding small XGB weights did not beat the current 50/50 LightGBM blend. |
 | `lgbm_006_ficr_focus` | local 0.6109322217 | improved submission candidate | A simple 1.03 global scale improved both local total_score and FICR on the 2024 validation prediction. |
-| `lgbm_006_ficr_focus_submit` | public 0.6158048399 | current best public submission | The 1.03 scaled and capacity-clipped submission improved public total_score and FiCR strongly over `ens_001_simple_avg_submit`. |
+| `lgbm_006_ficr_focus_submit` | public 0.6158048399 | previous best public submission | The 1.03 scaled and capacity-clipped submission improved public total_score and FiCR strongly over `ens_001_simple_avg_submit`. |
 | `lgbm_007_scale_robustness_cv` | local 0.6180968450 | possible submission candidate | Larger validation scales up to 1.08 kept improving FICR and total_score, so the upscaling effect is not isolated to 1.03. |
-| `lgbm_008_scale_upper_sweep_cv` | local 0.6184267418 | possible conservative submission candidate | The upper sweep peaked at scale 1.10 for both total_score and FICR, while larger scales degraded NMAE enough to lower total_score. |
+| `lgbm_008_scale_upper_sweep_cv` | local 0.6184267418 | converted to submission | The upper sweep peaked at scale 1.10 for both total_score and FICR, while larger scales degraded NMAE enough to lower total_score. |
+| `lgbm_008_scale_110_submit` | public 0.6211026154 | current best public submission | The public gain over `lgbm_006_ficr_focus_submit` was FiCR-driven, while public 1-NMAE dropped. |
 
 ---
 
@@ -325,7 +326,7 @@ Status:
 - Created ensemble test predictions at `outputs/predictions/ens_001_simple_avg_test.csv`.
 - Saved run logs and targeted-weather model artifact.
 - `python scripts/validate_submission.py submissions/ens_001_simple_avg.csv` passed.
-- Uploaded to DACON as `ens_001_simple_avg edit` by DACON submitter at 2026-07-09 03:27:38 KST.
+- Uploaded to DACON as `ens_001_simple_avg edit` at 2026-07-09 03:27:38 KST.
 
 Reference metrics:
 
@@ -421,7 +422,7 @@ Feedback:
 Decision:
 
 - Validation-only reference.
-- Keep `lgbm_006_ficr_focus_submit` as the current best public submission.
+- Keep `lgbm_006_ficr_focus_submit` as the previous best public submission before `lgbm_008_scale_110_submit`.
 - Do not create final submission code from this experiment.
 
 ---
@@ -454,7 +455,7 @@ Feedback:
 Decision:
 
 - Mark as an improved submission candidate by the predefined validation rule.
-- The postprocessing was converted into `lgbm_006_ficr_focus_submit` and is now the current best public submission.
+- The postprocessing was converted into `lgbm_006_ficr_focus_submit`, which became the previous best public submission before `lgbm_008_scale_110_submit`.
 - Keep private leaderboard robustness in mind before submitting more scaled variants.
 
 ---
@@ -485,7 +486,7 @@ Reference metrics:
 
 Feedback:
 
-- Uploaded to DACON as `lgbm_006_ficr_focus.csv edit` by DACON submitter at 2026-07-09 10:20:19 KST.
+- Uploaded to DACON as `lgbm_006_ficr_focus.csv edit` at 2026-07-09 10:20:19 KST.
 - This is a postprocessing-only submission; no new models were trained.
 - The source public reference was `ens_001_simple_avg_submit` with public total_score=0.6062263329, public one_minus_nmae=0.8675678207, public ficr=0.3448848451, and rank 275 at submission time.
 - The 1.03 scaling improved public total_score by +0.0095785070, public FiCR by +0.0187338424, and public 1-NMAE by +0.0004231716 versus `ens_001_simple_avg_submit`.
@@ -578,7 +579,7 @@ Status:
 - Clipped each target to group capacity.
 - Verified `forecast_id` and `forecast_kst_dtm` alignment with `data/raw/sample_submission.csv`.
 - `python scripts/validate_submission.py submissions/lgbm_008_scale_110.csv` passed.
-- Ready for DACON upload.
+- Uploaded to DACON as `0710_v1 edit` at 2026-07-10 17:54:24 KST.
 
 Reference metrics:
 
@@ -587,20 +588,28 @@ Reference metrics:
 | validation total_score reference | 0.6184267418 |
 | validation one_minus_nmae reference | 0.8671491370 |
 | validation ficr reference | 0.3697043467 |
-| public total_score | pending |
+| public total_score | 0.6211026154 |
+| public one_minus_nmae | 0.8634833072 |
+| public ficr | 0.3787219236 |
+| public rank at submission time | 148 |
 
 Feedback:
 
 - This is a postprocessing-only submission; no new models were trained.
 - The selected 1.10 scale came from `lgbm_008_scale_upper_sweep_cv`, where it beat the `lgbm_007` 1.08 scale on both total_score and FICR.
 - Scale 1.10 was the peak in the 1.075-1.16 upper sweep, not the upper boundary.
-- This submission is more aggressive than the public-proven 1.03 scale used by `lgbm_006_ficr_focus_submit`.
-- Only one 1.10 submission is recommended to avoid excessive public probing and public leaderboard overfit risk.
+- This submission is more aggressive than the 1.03 scale used by `lgbm_006_ficr_focus_submit`.
+- Public total_score improved by +0.0052977755 versus `lgbm_006_ficr_focus_submit`.
+- Public FiCR improved by +0.0151032361 versus `lgbm_006_ficr_focus_submit`.
+- Public 1-NMAE decreased by -0.0045076851 versus `lgbm_006_ficr_focus_submit`.
+- The public score increase is mainly FiCR-driven.
+- Keep caution that final ranking depends on the private leaderboard.
 
 Decision:
 
-- Ready for DACON upload as a deliberate single scaled-variant probe.
-- Keep `lgbm_006_ficr_focus_submit` as the current public-proven reference until public results are known.
+- Current best public submission.
+- Keep `lgbm_008_scale_110_submit` as the public reference.
+- Avoid more public probing today; next work should be validation-only modeling or feature experiments, not more scale submissions.
 
 ---
 
@@ -616,7 +625,7 @@ Decision:
 
 - RandomForest is too weak.
 - CatBoost and XGBoost are useful for ensemble diversity but do not beat tuned LightGBM individually.
-- Current best public submission is `lgbm_006_ficr_focus_submit`.
+- Current best public submission is `lgbm_008_scale_110_submit`.
 - `lgbm_003_tuned_submit` remains the strongest single-model baseline and comparison point.
 
 ### 3. Feature engineering must be physically meaningful
@@ -641,7 +650,7 @@ More promising direction:
 ### 5. Do not overfit to public leaderboard
 
 - Public score is useful feedback, but not the final private leaderboard.
-- Use `lgbm_006_ficr_focus_submit` as the public reference, `ens_001_simple_avg_submit` as the pre-scaling ensemble reference, and `lgbm_003_tuned_submit` as the single-model reference, but keep validation logic time-aware.
+- Use `lgbm_008_scale_110_submit` as the public reference, `lgbm_006_ficr_focus_submit` as the previous scaled public reference, `ens_001_simple_avg_submit` as the pre-scaling ensemble reference, and `lgbm_003_tuned_submit` as the single-model reference, but keep validation logic time-aware.
 - Record failed experiments because they are useful for later reports and final presentation.
 
 ---
@@ -704,15 +713,15 @@ Outcome:
 
 ## Current Action Plan
 
-1. Keep `lgbm_006_ficr_focus_submit` as the current best public reference.
+1. Keep `lgbm_008_scale_110_submit` as the current public reference.
 2. Record `lgbm_004_weather_agg` as a failed broad aggregation attempt.
 3. Keep `lgbm_005_targeted_weather` as an ensemble candidate, not a standalone submission.
 4. Keep `ens_002_weight_search_cv` as a validation-only reference; the 50/50 blend remains best among searched weights.
 5. Keep `ens_003_include_xgb_selective` as a validation-only reference; small XGB weights did not improve the blend.
-6. `lgbm_006_ficr_focus_submit` is the current best public submission after public total_score=0.6158048399.
-7. `lgbm_007_scale_robustness_cv` shows that larger validation scales up to 1.08 improve total_score and FICR, but this should be treated cautiously because 1.03 is the public-proven current best.
-8. `lgbm_008_scale_upper_sweep_cv` peaked at scale 1.10 rather than continuing to improve through 1.16, making 1.10 a possible conservative submission candidate if another public attempt is deliberately chosen.
-9. Next consider either a narrow validation-only check around 1.095-1.105 or new FICR-focused modeling before any further public submission.
+6. `lgbm_008_scale_110_submit` is the current best public submission after public total_score=0.6211026154.
+7. The public gain over `lgbm_006_ficr_focus_submit` was FiCR-driven, while public 1-NMAE dropped.
+8. Avoid more public probing today.
+9. Next run validation-only modeling or feature experiments, not more scale submissions.
 
 ---
 

@@ -553,8 +553,6 @@ Do not modify raw data or submission files unless explicitly requested.
 - Best local validation metrics: total_score=0.6033279875, one_minus_nmae=0.8673265858, ficr=0.3393293893.
 - Best DACON public metrics: total_score=0.60516, one_minus_nmae=0.86678, ficr=0.34354.
 - Public rank at submission time: 277.
-- Submitted name: REDACTED.
-- Submitter: DACON submitter.
 - Final tuned run artifacts: `submissions/lgbm_003_tuned.csv`, `outputs/predictions/lgbm_003_tuned_test.csv`, `outputs/logs/lgbm_003_tuned_submit.json`, `outputs/models/lgbm_003_tuned_submit.joblib`.
 - Validation status: `python scripts/train_lgbm_tuned_submit.py` completed successfully, and `python scripts/validate_submission.py submissions/lgbm_003_tuned.csv` passed.
 - CatBoost experiment: `cat_001_baseline` used the same baseline feature matrix with no wind-derived features and scored local total_score=0.5980575665, one_minus_nmae=0.8672565037, ficr=0.3288586294. It is lower than `lgbm_003_tuned_submit`, so it is an ensemble candidate rather than a standalone submission candidate.
@@ -574,7 +572,6 @@ Do not modify raw data or submission files unless explicitly requested.
 - Public rank at submission time: 245.
 - DACON submission title: `lgbm_006_ficr_focus.csv edit`.
 - Submitted_at: 2026-07-09 10:20:19 KST.
-- Submitter/team display: DACON submitter.
 - Previous best public reference: `ens_001_simple_avg_submit` with public total_score=0.6062263329, public one_minus_nmae=0.8675678207, public ficr=0.3448848451, rank 275 at submission time.
 - Previous best public reference: `lgbm_003_tuned_submit` with public total_score=0.60516, public one_minus_nmae=0.86678, public ficr=0.34354, rank 277 at submission time.
 - `lgbm_005_targeted_weather`: run_id=`lgbm_005_targeted_weather_valid_2024`; script=`scripts/train_lgbm_targeted_weather_cv.py`; feature function=`build_targeted_weather_feature_matrix` in `src/dacon_wind/features.py`; model=LightGBM tuned grid; features=baseline calendar + LDAPS/GFS mean features + targeted weather features.
@@ -586,6 +583,27 @@ Do not modify raw data or submission files unless explicitly requested.
 - `ens_001_simple_avg_submit`: submission file=`submissions/ens_001_simple_avg.csv`; public total_score=0.6062263329, public one_minus_nmae=0.8675678207, public ficr=0.3448848451; previous best public submission before `lgbm_006_ficr_focus_submit`.
 - `ens_001_simple_avg_submit` interpretation: local validation improvement transferred to the public leaderboard; both public 1-NMAE and public FiCR improved over `lgbm_003_tuned_submit`; keep caution that the final target is the private leaderboard.
 - `lgbm_006_ficr_focus`: validation experiment selected `lgbm_006_global_scale_103`, multiplying all target predictions by 1.03 and clipping to group capacity; local total_score=0.6109322217, one_minus_nmae=0.8692902276, ficr=0.3525742158.
-- `lgbm_006_ficr_focus_submit`: submission file=`submissions/lgbm_006_ficr_focus.csv`; public total_score=0.6158048399, public one_minus_nmae=0.8679909923, public ficr=0.3636186875; rank 245 at submission time; current best public submission.
+- `lgbm_006_ficr_focus_submit`: submission file=`submissions/lgbm_006_ficr_focus.csv`; public total_score=0.6158048399, public one_minus_nmae=0.8679909923, public ficr=0.3636186875; rank 245 at submission time; previous best public submission before `lgbm_008_scale_110_submit`.
 - `lgbm_006_ficr_focus_submit` interpretation: validation-selected 1.03 global scaling transferred strongly to public leaderboard, improving total_score by +0.0095785070, FiCR by +0.0187338424, and 1-NMAE by +0.0004231716 versus `ens_001_simple_avg_submit`.
-- Current direction: keep `lgbm_006_ficr_focus_submit` as the current best public reference, avoid excessive public probing, and next consider validation-only robustness checks around scaling, such as 1.01/1.02/1.03/1.04, before deciding whether to submit another scaled variant.
+- Current direction: superseded by the updated 2026-07-10 snapshot below.
+
+
+## Current Progress Snapshot - 2026-07-10 KST Update
+
+- Competition: DACON wind power generation forecasting AI contest.
+- Project goal: predict wind power generation for KPX groups using weather forecast data.
+- Current workflow: load raw train/test weather and label data, build baseline calendar + LDAPS/GFS mean features, use 2024 time-based local validation, train separate models for `kpx_group_1`, `kpx_group_2`, and `kpx_group_3`, clip predictions by group capacity, and validate every submission with `scripts/validate_submission.py`.
+- Current best public submission: `lgbm_008_scale_110_submit`.
+- Best submission file: `submissions/lgbm_008_scale_110.csv`.
+- DACON submission title: `0710_v1 edit`.
+- Submitted_at: 2026-07-10 17:54:24 KST.
+- Public rank at submission time: 148.
+- Best DACON public metrics: total_score=0.6211026154, one_minus_nmae=0.8634833072, ficr=0.3787219236.
+- Validation reference: `lgbm_008_scale_upper_sweep_cv`, selected scale=1.10, local total_score=0.6184267418, one_minus_nmae=0.8671491370, ficr=0.3697043467.
+- Method: scale 1.10 applied to `outputs/predictions/ens_001_simple_avg_test.csv`, clipped to group capacity.
+- Generated artifacts: `submissions/lgbm_008_scale_110.csv`, `outputs/predictions/lgbm_008_scale_110_test.csv`, `outputs/logs/lgbm_008_scale_110_submit.json`.
+- Validation status: `python scripts/validate_submission.py submissions/lgbm_008_scale_110.csv` passed.
+- Previous best public reference: `lgbm_006_ficr_focus_submit` with public total_score=0.6158048399, public one_minus_nmae=0.8679909923, public ficr=0.3636186875, rank 245 at submission time.
+- Public comparison versus `lgbm_006_ficr_focus_submit`: total_score +0.0052977755, FiCR +0.0151032361, one_minus_nmae -0.0045076851.
+- Interpretation: `lgbm_008_scale_110_submit` is now the current best public submission. The public score increase is mainly FiCR-driven, while 1-NMAE dropped. Keep caution that final ranking depends on the private leaderboard.
+- Current direction: keep `lgbm_008_scale_110_submit` as the current public reference, avoid more public probing today, and next do validation-only modeling or feature experiments rather than more scale submissions.
