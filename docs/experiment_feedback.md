@@ -80,6 +80,7 @@ Decision:
 | `lgbm_007_scale_robustness_cv` | local 0.6180968450 | possible submission candidate | Larger validation scales up to 1.08 kept improving FICR and total_score, so the upscaling effect is not isolated to 1.03. |
 | `lgbm_008_scale_upper_sweep_cv` | local 0.6184267418 | converted to submission | The upper sweep peaked at scale 1.10 for both total_score and FICR, while larger scales degraded NMAE enough to lower total_score. |
 | `lgbm_008_scale_110_submit` | public 0.6211026154 | current best public submission | The public gain over `lgbm_006_ficr_focus_submit` was FiCR-driven, while public 1-NMAE dropped. |
+| `lgbm_009_multi_seed_lgbm_cv` | local 0.6179878399 | no submission | Multi-seed averaging improved stability but the best scaled score stayed below `lgbm_008` validation and lost 1-NMAE versus that reference. |
 
 ---
 
@@ -610,6 +611,37 @@ Decision:
 - Current best public submission.
 - Keep `lgbm_008_scale_110_submit` as the public reference.
 - Avoid more public probing today; next work should be validation-only modeling or feature experiments, not more scale submissions.
+
+---
+
+### 18. `lgbm_009_multi_seed_lgbm_cv` - Validation-Only Multi-Seed LightGBM
+
+Purpose:
+
+Test whether averaging tuned `lgbm_003` LightGBM models across seeds improves validation stability and 1-NMAE before any future submission generation.
+
+Best candidate:
+
+| Item | Value |
+|---|---:|
+| selected best scale | 1.10 |
+| local total_score | 0.6179878399 |
+| local one_minus_nmae | 0.8668335806 |
+| local ficr | 0.3691420992 |
+| raw ensemble total_score | 0.6023894779 |
+| beats `lgbm_008` validation total_score | false |
+
+Feedback:
+
+- The raw multi-seed average did not improve over the existing ensemble references.
+- Scaling recovered FICR, but the best scaled candidate remained below `lgbm_008_scale_upper_sweep_cv` total_score=0.6184267418.
+- The best scaled candidate also reduced 1-NMAE versus the `lgbm_008` validation reference.
+- This is not a strong candidate for submission generation.
+
+Decision:
+
+- Keep `lgbm_008_scale_110_submit` as the current public reference.
+- Do not create submission code or test predictions from this experiment.
 
 ---
 
