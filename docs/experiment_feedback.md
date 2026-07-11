@@ -87,6 +87,7 @@ Decision:
 | `cv_001_rolling_scale_robustness_cv` | 2024-only evaluated 0.6248401656 | insufficient rolling evidence | 2022 and 2023 were skipped by strict prior-year training rules, so no scale candidate proved robust across multiple years. |
 | `lgbm_010_targeted_feature_v2_cv` | local 0.6184267418 scaled | no submission | The v2 feature set hurt standalone validation and did not improve any v2-including raw ensemble over `ens_001`; the scaled best only reproduced the existing global 1.10 reference. |
 | `lgbm_011_objective_diversity_cv` | local 0.6214914951 scaled | future submission candidate | Objective diversity improved raw validation over `ens_001`, and conservative global scale 1.095 beat the `lgbm_008` validation reference without group-wise scaling. |
+| `lgbm_011_objective_diversity_submit` | local reference 0.6214914951 | ready for DACON upload | Full-train objective-diversity submission created with weights 0.3/0.6/0.1 and global scale 1.095; public score is pending, so avoid immediate upload if submission budget or public probing risk is a concern. |
 
 ---
 
@@ -823,6 +824,49 @@ Decision:
 - Mark as a future submission candidate by validation rule.
 - No test predictions or submission CSV were created.
 - Keep `lgbm_008_scale_110_submit` as current best public reference until a deliberate submission-budget decision is made.
+
+---
+
+### 24. `lgbm_011_objective_diversity_submit` - Objective Diversity Submission File
+
+Status:
+
+- Created `outputs/predictions/lgbm_011_objective_diversity_test.csv`.
+- Created `submissions/lgbm_011_objective_diversity.csv`.
+- Created `outputs/logs/lgbm_011_objective_diversity_submit.json`.
+- Created `outputs/models/lgbm_011_objective_diversity_submit.joblib`.
+- Trained the selected objective-diversity members on all available train rows from `data/raw/train`.
+- Used the baseline and targeted-weather feature sets from `lgbm_011_objective_diversity_cv`.
+- Applied raw weights `baseline_regression_l1=0.3`, `targeted_regression_l1=0.6`, and `targeted_regression=0.1`.
+- Clipped the raw weighted ensemble to group capacity, applied global scale 1.095, then clipped again.
+- Verified `forecast_id` and `forecast_kst_dtm` alignment with `data/raw/sample_submission.csv`.
+- `python scripts/validate_submission.py submissions/lgbm_011_objective_diversity.csv` passed.
+
+Reference metrics:
+
+| Metric | Value |
+|---|---:|
+| validation total_score reference | 0.6214914951 |
+| validation one_minus_nmae reference | 0.8674785360 |
+| validation ficr reference | 0.3755044543 |
+| current best public reference total_score | 0.6211026154 |
+| current best public reference one_minus_nmae | 0.8634833072 |
+| current best public reference ficr | 0.3787219236 |
+| public score | pending |
+
+Feedback:
+
+- This is ready for DACON upload as a candidate generated from the best `lgbm_011_objective_diversity_cv` scaled validation result.
+- The validation score beats `lgbm_008_scale_upper_sweep_cv` total_score=0.6184267418 without group-wise scaling.
+- The method avoids the 2024-selected group-wise scaling that underperformed in `ens_004_group_scale_submit`.
+- The validation improvement is close to the current best public reference, but public/private split behavior may differ.
+- Do not upload immediately if preserving submission budget or avoiding public leaderboard probing is a higher priority.
+- Final ranking depends on the private leaderboard, so a stronger private-robustness argument is still more important than public score chasing.
+
+Decision:
+
+- Mark as ready for DACON upload.
+- Recommended action is deliberate upload only after considering submission budget and public-overfit risk.
 
 ---
 
