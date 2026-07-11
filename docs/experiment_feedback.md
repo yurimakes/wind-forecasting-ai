@@ -85,6 +85,7 @@ Decision:
 | `ens_004_group_scale_cv` | local 0.6248401656 | overfit risk confirmed | Group-wise scales 1.110/1.020/1.130 beat the global 1.10 validation reference on 2024, but the submission underperformed on public. |
 | `ens_004_group_scale_submit` | public 0.6128355459 | not current best | Public score fell below `lgbm_008_scale_110_submit`, suggesting the 2024-only group-wise scale was overfit. |
 | `cv_001_rolling_scale_robustness_cv` | 2024-only evaluated 0.6248401656 | insufficient rolling evidence | 2022 and 2023 were skipped by strict prior-year training rules, so no scale candidate proved robust across multiple years. |
+| `lgbm_010_targeted_feature_v2_cv` | local 0.6184267418 scaled | no submission | The v2 feature set hurt standalone validation and did not improve any v2-including raw ensemble over `ens_001`; the scaled best only reproduced the existing global 1.10 reference. |
 
 ---
 
@@ -760,6 +761,38 @@ Decision:
 
 ---
 
+### 22. `lgbm_010_targeted_feature_v2_cv` - Targeted Feature v2 Validation
+
+Purpose:
+
+Test targeted row-local meteorological and time features on top of the existing `lgbm_005_targeted_weather` feature surface, without creating test predictions or a submission CSV.
+
+Key results:
+
+| Candidate | total_score | one_minus_nmae | ficr |
+|---|---:|---:|---:|
+| `lgbm_003_tuned_baseline_recheck` | 0.6033279875 | 0.8673265858 | 0.3393293893 |
+| `lgbm_005_targeted_weather_recheck` | 0.6019196756 | 0.8674731184 | 0.3363662327 |
+| `lgbm_010_targeted_feature_v2` | 0.5980917069 | 0.8663548879 | 0.3298285259 |
+| best v2-including raw ensemble | 0.6035379179 | 0.8679159306 | 0.3391599052 |
+| best raw overall, old 0.5/0.5 blend | 0.6037465036 | 0.8680552297 | 0.3394377775 |
+| best conservative scaled candidate | 0.6184267418 | 0.8671491370 | 0.3697043467 |
+
+Feedback:
+
+- The script created 37 v2 features and skipped wind-direction sin/cos because no direction columns existed.
+- The standalone v2 model reduced both 1-NMAE and FiCR versus the baseline and targeted-weather rechecks.
+- The best v2-including ensemble used only 0.10 weight on v2 and still stayed below `ens_001_simple_avg`.
+- The selected scaled candidate was the old `ens_001` 0.5/0.5 raw blend at global scale 1.10, matching the existing `lgbm_008` validation reference rather than improving it.
+
+Decision:
+
+- Do not create submission code from this experiment.
+- Keep `lgbm_008_scale_110_submit` as the current best public reference.
+- Continue feature/model experiments, but avoid adding more broad derived weather features without a clearer physical reason.
+
+---
+
 ## Main Lessons So Far
 
 ### 1. Validation setup matters
@@ -871,7 +904,7 @@ Outcome:
 8. `ens_004_group_scale_submit` underperformed on public total_score=0.6128355459, likely due to 2024 validation overfit.
 9. `cv_001_rolling_scale_robustness_cv` did not prove a robust multi-year scale candidate because only 2024 was evaluable.
 10. Avoid more public probing today.
-11. Next run validation-only modeling or feature experiments, not more scale submissions.
+11. `lgbm_010_targeted_feature_v2_cv` did not improve raw validation, so continue validation-only feature/model experiments.
 
 ---
 
