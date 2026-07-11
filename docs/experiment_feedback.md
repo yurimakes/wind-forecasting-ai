@@ -39,6 +39,7 @@ Key interpretation:
 - `lgbm_006_ficr_focus_submit` remains the previous best public reference.
 - `ens_001_simple_avg_submit` remains the pre-scaling ensemble reference.
 - `lgbm_003_tuned_submit` remains the main single-model comparison baseline.
+- `ens_004_group_scale_submit` underperformed this reference on public score and is not current best.
 - The best LightGBM setting used a relatively small tree structure:
   - `num_leaves=15`
   - `min_child_samples=20`
@@ -81,8 +82,9 @@ Decision:
 | `lgbm_008_scale_upper_sweep_cv` | local 0.6184267418 | converted to submission | The upper sweep peaked at scale 1.10 for both total_score and FICR, while larger scales degraded NMAE enough to lower total_score. |
 | `lgbm_008_scale_110_submit` | public 0.6211026154 | current best public submission | The public gain over `lgbm_006_ficr_focus_submit` was FiCR-driven, while public 1-NMAE dropped. |
 | `lgbm_009_multi_seed_lgbm_cv` | local 0.6179878399 | no submission | Multi-seed averaging improved stability but the best scaled score stayed below `lgbm_008` validation and lost 1-NMAE versus that reference. |
-| `ens_004_group_scale_cv` | local 0.6248401656 | strong future submission candidate | Group-wise scales 1.110/1.020/1.130 beat the global 1.10 validation reference on total_score, 1-NMAE, and FiCR. |
-| `ens_004_group_scale_submit` | public pending | ready for DACON upload | Applies the validation-selected group-wise scales 1.110/1.020/1.130 to `ens_001_simple_avg_test` and validates successfully. |
+| `ens_004_group_scale_cv` | local 0.6248401656 | overfit risk confirmed | Group-wise scales 1.110/1.020/1.130 beat the global 1.10 validation reference on 2024, but the submission underperformed on public. |
+| `ens_004_group_scale_submit` | public 0.6128355459 | not current best | Public score fell below `lgbm_008_scale_110_submit`, suggesting the 2024-only group-wise scale was overfit. |
+| `cv_001_rolling_scale_robustness_cv` | 2024-only evaluated 0.6248401656 | insufficient rolling evidence | 2022 and 2023 were skipped by strict prior-year training rules, so no scale candidate proved robust across multiple years. |
 
 ---
 
@@ -697,7 +699,9 @@ Reference metrics:
 | validation total_score reference | 0.6248401656 |
 | validation one_minus_nmae reference | 0.8696017636 |
 | validation ficr reference | 0.3800785675 |
-| public total_score | pending |
+| public total_score | 0.6128355459 |
+| public one_minus_nmae | 0.8625281665 |
+| public ficr | 0.3631429254 |
 
 Feedback:
 
@@ -705,14 +709,54 @@ Feedback:
 - Validation improved total_score by +0.0064134238 versus the global 1.10 validation reference.
 - Validation improved 1-NMAE by +0.0024526266 versus the global 1.10 validation reference.
 - Validation improved FiCR by +0.0103742208 versus the global 1.10 validation reference.
-- The candidate is ready for DACON upload.
+- Uploaded to DACON as `ens_004_group_scale edit` at 2026-07-11 16:04:53 KST.
+- The public score underperformed `lgbm_008_scale_110_submit` public total_score=0.6211026154.
+- This result suggests the group-wise scale was likely overfit to the single 2024 validation split.
 - Keep caution that final ranking depends on the private leaderboard, and public feedback should not be overused for model selection.
 
 Decision:
 
-- Ready for DACON upload.
-- Record public score after upload.
-- Keep private leaderboard risk in mind because the selected scales are validation-calibrated.
+- Not current best public submission.
+- Do not submit variants of this exact 2024-selected group-wise scale without stronger time-aware validation evidence.
+- Keep `lgbm_008_scale_110_submit` as the current public reference.
+
+---
+
+### 21. `cv_001_rolling_scale_robustness_cv` - Rolling-Year Scale Robustness
+
+Purpose:
+
+Evaluate global and group-wise scaling candidates across requested validation years 2022, 2023, and 2024 instead of relying only on the 2024 split.
+
+Fold status:
+
+| validation_year | status | reason |
+|---:|---|---|
+| 2022 | skipped | no training rows with forecast year < 2022 |
+| 2023 | skipped | `kpx_group_3` had 0 prior training labels |
+| 2024 | evaluated | valid strict rolling fold |
+
+Key results:
+
+| Candidate | mean_total_score | min_total_score | mean_1_nmae | mean_ficr | evaluated_years |
+|---|---:|---:|---:|---:|---|
+| `ens_004_failed_group_scale_1p110_1p020_1p130` | 0.6248401656 | 0.6248401656 | 0.8696017636 | 0.3800785675 | 2024 |
+| `global_1p1` | 0.6184267418 | 0.6184267418 | 0.8671491370 | 0.3697043467 | 2024 |
+| `raw_no_scale` | 0.6037465036 | 0.6037465036 | 0.8680552297 | 0.3394377775 | 2024 |
+
+Feedback:
+
+- The script successfully recreated the strongest validation source as a 50/50 raw ensemble of the tuned baseline LightGBM and targeted-weather LightGBM.
+- Under strict rolling-year rules, only 2024 was evaluable because earlier folds lacked prior target history for all groups.
+- The failed `ens_004` group scale remained best on the 2024 fold, but this is exactly the split where it was selected.
+- The experiment could not prove instability across years because only one fold was evaluable.
+- The public underperformance of `ens_004_group_scale_submit` remains the practical evidence that the group-wise scale overfit the 2024 validation split.
+
+Decision:
+
+- Insufficient rolling-year evidence for a robust scale candidate.
+- Keep `lgbm_008_scale_110_submit` as the current best public reference.
+- Shift next work to feature/model improvements rather than more scale variants.
 
 ---
 
@@ -754,6 +798,7 @@ More promising direction:
 
 - Public score is useful feedback, but not the final private leaderboard.
 - Use `lgbm_008_scale_110_submit` as the public reference, `lgbm_006_ficr_focus_submit` as the previous scaled public reference, `ens_001_simple_avg_submit` as the pre-scaling ensemble reference, and `lgbm_003_tuned_submit` as the single-model reference, but keep validation logic time-aware.
+- Treat `ens_004_group_scale_submit` as a public underperformance case and avoid variants of the same 2024-selected group-wise scale.
 - Record failed experiments because they are useful for later reports and final presentation.
 
 ---
@@ -823,8 +868,10 @@ Outcome:
 5. Keep `ens_003_include_xgb_selective` as a validation-only reference; small XGB weights did not improve the blend.
 6. `lgbm_008_scale_110_submit` is the current best public submission after public total_score=0.6211026154.
 7. The public gain over `lgbm_006_ficr_focus_submit` was FiCR-driven, while public 1-NMAE dropped.
-8. Avoid more public probing today.
-9. Next run validation-only modeling or feature experiments, not more scale submissions.
+8. `ens_004_group_scale_submit` underperformed on public total_score=0.6128355459, likely due to 2024 validation overfit.
+9. `cv_001_rolling_scale_robustness_cv` did not prove a robust multi-year scale candidate because only 2024 was evaluable.
+10. Avoid more public probing today.
+11. Next run validation-only modeling or feature experiments, not more scale submissions.
 
 ---
 
