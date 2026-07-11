@@ -1,6 +1,6 @@
 # Experiment Feedback
 
-Updated: 2026-07-10 KST
+Updated: 2026-07-11 KST
 
 This file records qualitative feedback, experiment interpretation, failure analysis, and next actions for the DACON wind power generation forecasting project.
 
@@ -81,6 +81,7 @@ Decision:
 | `lgbm_008_scale_upper_sweep_cv` | local 0.6184267418 | converted to submission | The upper sweep peaked at scale 1.10 for both total_score and FICR, while larger scales degraded NMAE enough to lower total_score. |
 | `lgbm_008_scale_110_submit` | public 0.6211026154 | current best public submission | The public gain over `lgbm_006_ficr_focus_submit` was FiCR-driven, while public 1-NMAE dropped. |
 | `lgbm_009_multi_seed_lgbm_cv` | local 0.6179878399 | no submission | Multi-seed averaging improved stability but the best scaled score stayed below `lgbm_008` validation and lost 1-NMAE versus that reference. |
+| `ens_004_group_scale_cv` | local 0.6248401656 | strong future submission candidate | Group-wise scales 1.110/1.020/1.130 beat the global 1.10 validation reference on total_score, 1-NMAE, and FiCR. |
 
 ---
 
@@ -642,6 +643,37 @@ Decision:
 
 - Keep `lgbm_008_scale_110_submit` as the current public reference.
 - Do not create submission code or test predictions from this experiment.
+
+---
+
+### 19. `ens_004_group_scale_cv` - Validation-Only Group-Wise Scaling
+
+Purpose:
+
+Search separate scale factors for `kpx_group_1`, `kpx_group_2`, and `kpx_group_3` using `outputs/predictions/ens_001_simple_avg_valid_2024_best.csv`.
+
+Best candidate:
+
+| Item | Value |
+|---|---:|
+| selected scales | 1.110 / 1.020 / 1.130 |
+| local total_score | 0.6248401656 |
+| local one_minus_nmae | 0.8696017636 |
+| local ficr | 0.3800785675 |
+| delta total vs `lgbm_008` validation | +0.0064134238 |
+| delta one_minus_nmae vs `lgbm_008` validation | +0.0024526266 |
+| delta ficr vs `lgbm_008` validation | +0.0103742208 |
+
+Feedback:
+
+- Coarse grid best was `1.105 / 1.030 / 1.120` with total_score=0.6240789838.
+- Fine grid best was `1.110 / 1.020 / 1.130`, improving both total_score and 1-NMAE versus the global 1.10 validation reference.
+- This is stronger than a pure FiCR tradeoff because 1-NMAE is preserved and improved.
+
+Decision:
+
+- Mark as a strong future submission candidate by the predefined rule.
+- No test predictions or submission CSV were created in this validation-only run.
 
 ---
 
