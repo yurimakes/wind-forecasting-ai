@@ -82,6 +82,7 @@ Decision:
 | `lgbm_008_scale_110_submit` | public 0.6211026154 | current best public submission | The public gain over `lgbm_006_ficr_focus_submit` was FiCR-driven, while public 1-NMAE dropped. |
 | `lgbm_009_multi_seed_lgbm_cv` | local 0.6179878399 | no submission | Multi-seed averaging improved stability but the best scaled score stayed below `lgbm_008` validation and lost 1-NMAE versus that reference. |
 | `ens_004_group_scale_cv` | local 0.6248401656 | strong future submission candidate | Group-wise scales 1.110/1.020/1.130 beat the global 1.10 validation reference on total_score, 1-NMAE, and FiCR. |
+| `ens_004_group_scale_submit` | public pending | ready for DACON upload | Applies the validation-selected group-wise scales 1.110/1.020/1.130 to `ens_001_simple_avg_test` and validates successfully. |
 
 ---
 
@@ -674,6 +675,44 @@ Decision:
 
 - Mark as a strong future submission candidate by the predefined rule.
 - No test predictions or submission CSV were created in this validation-only run.
+
+---
+
+### 20. `ens_004_group_scale_submit` - Group-Wise Scale Submission File
+
+Status:
+
+- Created `outputs/predictions/ens_004_group_scale_test.csv`.
+- Created `submissions/ens_004_group_scale.csv`.
+- Created `outputs/logs/ens_004_group_scale_submit.json`.
+- Applied group-wise scales 1.110 / 1.020 / 1.130 to `outputs/predictions/ens_001_simple_avg_test.csv`.
+- Clipped each target to group capacity.
+- Verified `forecast_id` and `forecast_kst_dtm` alignment with `data/raw/sample_submission.csv`.
+- `python scripts/validate_submission.py submissions/ens_004_group_scale.csv` passed.
+
+Reference metrics:
+
+| Metric | Value |
+|---|---:|
+| validation total_score reference | 0.6248401656 |
+| validation one_minus_nmae reference | 0.8696017636 |
+| validation ficr reference | 0.3800785675 |
+| public total_score | pending |
+
+Feedback:
+
+- This is a postprocessing-only submission; no new models were trained.
+- Validation improved total_score by +0.0064134238 versus the global 1.10 validation reference.
+- Validation improved 1-NMAE by +0.0024526266 versus the global 1.10 validation reference.
+- Validation improved FiCR by +0.0103742208 versus the global 1.10 validation reference.
+- The candidate is ready for DACON upload.
+- Keep caution that final ranking depends on the private leaderboard, and public feedback should not be overused for model selection.
+
+Decision:
+
+- Ready for DACON upload.
+- Record public score after upload.
+- Keep private leaderboard risk in mind because the selected scales are validation-calibrated.
 
 ---
 
