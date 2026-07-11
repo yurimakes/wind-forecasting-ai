@@ -86,6 +86,7 @@ Decision:
 | `ens_004_group_scale_submit` | public 0.6128355459 | not current best | Public score fell below `lgbm_008_scale_110_submit`, suggesting the 2024-only group-wise scale was overfit. |
 | `cv_001_rolling_scale_robustness_cv` | 2024-only evaluated 0.6248401656 | insufficient rolling evidence | 2022 and 2023 were skipped by strict prior-year training rules, so no scale candidate proved robust across multiple years. |
 | `lgbm_010_targeted_feature_v2_cv` | local 0.6184267418 scaled | no submission | The v2 feature set hurt standalone validation and did not improve any v2-including raw ensemble over `ens_001`; the scaled best only reproduced the existing global 1.10 reference. |
+| `lgbm_011_objective_diversity_cv` | local 0.6214914951 scaled | future submission candidate | Objective diversity improved raw validation over `ens_001`, and conservative global scale 1.095 beat the `lgbm_008` validation reference without group-wise scaling. |
 
 ---
 
@@ -790,6 +791,38 @@ Decision:
 - Do not create submission code from this experiment.
 - Keep `lgbm_008_scale_110_submit` as the current best public reference.
 - Continue feature/model experiments, but avoid adding more broad derived weather features without a clearer physical reason.
+
+---
+
+### 23. `lgbm_011_objective_diversity_cv` - LightGBM Objective Diversity Validation
+
+Purpose:
+
+Train LightGBM variants with different objective behavior on the existing safe baseline and targeted-weather feature sets, then test raw objective-diversity ensembles before any future submission generation.
+
+Key results:
+
+| Candidate | total_score | one_minus_nmae | ficr |
+|---|---:|---:|---:|
+| best single objective, `baseline_regression_l1` | 0.6052244336 | 0.8670253828 | 0.3434234844 |
+| reference 0.5 baseline regression + 0.5 targeted regression | 0.6037465036 | 0.8680552297 | 0.3394377775 |
+| best raw objective-diversity ensemble | 0.6077784238 | 0.8683304324 | 0.3472264153 |
+| best conservative scaled candidate, scale 1.095 | 0.6214914951 | 0.8674785360 | 0.3755044543 |
+
+Feedback:
+
+- `regression_l1` was the strongest single-objective variant on both baseline and targeted feature sets.
+- Huber performed poorly with the current base parameters and should not be used as-is.
+- Poisson and Tweedie trained successfully because labels were nonnegative, but both were weak standalone candidates.
+- The best raw candidate used top-4 weight search with weights `baseline_regression_l1=0.3`, `targeted_regression_l1=0.6`, and `targeted_regression=0.1`.
+- The raw candidate beat `ens_001_simple_avg` validation total_score=0.6037465036, so objective diversity is useful by the predefined rule.
+- The best conservative scaled candidate beat `lgbm_008` validation total_score=0.6184267418 without group-wise scale.
+
+Decision:
+
+- Mark as a future submission candidate by validation rule.
+- No test predictions or submission CSV were created.
+- Keep `lgbm_008_scale_110_submit` as current best public reference until a deliberate submission-budget decision is made.
 
 ---
 
