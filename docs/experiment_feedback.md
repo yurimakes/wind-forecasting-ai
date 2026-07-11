@@ -40,6 +40,7 @@ Key interpretation:
 - `ens_001_simple_avg_submit` remains the pre-scaling ensemble reference.
 - `lgbm_003_tuned_submit` remains the main single-model comparison baseline.
 - `ens_004_group_scale_submit` underperformed this reference on public score and is not current best.
+- `lgbm_011_objective_diversity_submit` also underperformed this reference on public score and is not current best.
 - The best LightGBM setting used a relatively small tree structure:
   - `num_leaves=15`
   - `min_child_samples=20`
@@ -87,7 +88,7 @@ Decision:
 | `cv_001_rolling_scale_robustness_cv` | 2024-only evaluated 0.6248401656 | insufficient rolling evidence | 2022 and 2023 were skipped by strict prior-year training rules, so no scale candidate proved robust across multiple years. |
 | `lgbm_010_targeted_feature_v2_cv` | local 0.6184267418 scaled | no submission | The v2 feature set hurt standalone validation and did not improve any v2-including raw ensemble over `ens_001`; the scaled best only reproduced the existing global 1.10 reference. |
 | `lgbm_011_objective_diversity_cv` | local 0.6214914951 scaled | future submission candidate | Objective diversity improved raw validation over `ens_001`, and conservative global scale 1.095 beat the `lgbm_008` validation reference without group-wise scaling. |
-| `lgbm_011_objective_diversity_submit` | local reference 0.6214914951 | ready for DACON upload | Full-train objective-diversity submission created with weights 0.3/0.6/0.1 and global scale 1.095; public score is pending, so avoid immediate upload if submission budget or public probing risk is a concern. |
+| `lgbm_011_objective_diversity_submit` | public 0.6176871941 | not current best | Validation improvement did not fully transfer to public; it beat `ens_004_group_scale_submit` public total_score but underperformed `lgbm_008_scale_110_submit`, so avoid more public probing today. |
 
 ---
 
@@ -852,21 +853,27 @@ Reference metrics:
 | current best public reference total_score | 0.6211026154 |
 | current best public reference one_minus_nmae | 0.8634833072 |
 | current best public reference ficr | 0.3787219236 |
-| public score | pending |
+| public total_score | 0.6176871941 |
+| public one_minus_nmae | 0.8616801707 |
+| public ficr | 0.3736942174 |
 
 Feedback:
 
-- This is ready for DACON upload as a candidate generated from the best `lgbm_011_objective_diversity_cv` scaled validation result.
+- Uploaded to DACON as `lgbm_011_objective_diversity edit` at 2026-07-11 17:32:29 KST.
 - The validation score beats `lgbm_008_scale_upper_sweep_cv` total_score=0.6184267418 without group-wise scaling.
 - The method avoids the 2024-selected group-wise scaling that underperformed in `ens_004_group_scale_submit`.
-- The validation improvement is close to the current best public reference, but public/private split behavior may differ.
-- Do not upload immediately if preserving submission budget or avoiding public leaderboard probing is a higher priority.
+- This was a reasonable validation-selected submission candidate because it beat `lgbm_008` validation without group-wise scaling.
+- The validation improvement did not fully transfer to public: public total_score=0.6176871941 underperformed `lgbm_008_scale_110_submit` public total_score=0.6211026154.
+- It still beat `ens_004_group_scale_submit` public total_score=0.6128355459, but not enough to become current best.
+- Keep `lgbm_008_scale_110_submit` as the current best public reference.
+- Avoid more public submissions today; next work should be validation-only diagnostics and model/feature experiments.
 - Final ranking depends on the private leaderboard, so a stronger private-robustness argument is still more important than public score chasing.
 
 Decision:
 
-- Mark as ready for DACON upload.
-- Recommended action is deliberate upload only after considering submission budget and public-overfit risk.
+- Not current best public submission.
+- Keep `lgbm_008_scale_110_submit` as current best public reference.
+- Do validation-only diagnostics and model/feature experiments next, not more immediate submissions.
 
 ---
 
@@ -980,8 +987,9 @@ Outcome:
 7. The public gain over `lgbm_006_ficr_focus_submit` was FiCR-driven, while public 1-NMAE dropped.
 8. `ens_004_group_scale_submit` underperformed on public total_score=0.6128355459, likely due to 2024 validation overfit.
 9. `cv_001_rolling_scale_robustness_cv` did not prove a robust multi-year scale candidate because only 2024 was evaluable.
-10. Avoid more public probing today.
-11. `lgbm_010_targeted_feature_v2_cv` did not improve raw validation, so continue validation-only feature/model experiments.
+10. `lgbm_011_objective_diversity_submit` underperformed the current best public reference despite stronger validation, so validation gains need more diagnostics before another upload.
+11. Avoid more public probing today.
+12. `lgbm_010_targeted_feature_v2_cv` did not improve raw validation, so continue validation-only feature/model experiments.
 
 ---
 
