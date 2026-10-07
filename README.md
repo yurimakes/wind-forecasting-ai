@@ -1,87 +1,88 @@
 # Wind Power Forecasting
 
-## Overview
+A tabular machine-learning workflow for hourly wind generation forecasts, built for the [DACON BARAM 2026 competition](https://dacon.io/competitions/official/236727/overview/description).
 
-Experiment code for the [DACON BARAM 2026 wind power forecasting competition](https://dacon.io/competitions/official/236727/overview/description). LDAPS/GFS weather forecasts and calendar features are used to predict hourly generation for three KPX groups.
+The project turns LDAPS and GFS weather forecasts into timestamp-level features, trains a separate regressor for each KPX group, and compares feature, ensemble and calibration choices with time-based validation.
 
-The recorded approach compares RandomForest, LightGBM, CatBoost and XGBoost, then combines two LightGBM variants and applies capacity-clipped scaling. This repository documents the experiments, including unsuccessful feature changes.
+## Project at a Glance
 
-This repository focuses on the modeling workflow, experiment design and lessons learned. Raw-data training and inference have not been independently rerun for this documentation update.
-
-Main workflow:
-
-1. Load raw train/test weather and label data.
-2. Build baseline calendar + LDAPS/GFS mean features.
-3. Use 2024 time-based local validation.
-4. Train separate models for `kpx_group_1`, `kpx_group_2`, and `kpx_group_3`.
-5. Clip predictions by each group capacity.
-6. Validate every submission using `scripts/validate_submission.py`.
-
-Raw data, trained models, row-level predictions and submission CSVs are excluded. Keep authorized local data under `data/raw/`, models under `outputs/models/`, predictions under `outputs/predictions/`, logs under `outputs/logs/`, and submission CSVs under `submissions/`. See [sources and usage conditions](docs/SOURCES.md).
-
-## Modeling Approach and Lessons
-
-| Component | Approach |
+| Item | Implementation |
 |---|---|
-| Baselines | RandomForest, LightGBM, CatBoost and XGBoost |
-| Features | Calendar features and mean-aggregated LDAPS/GFS forecasts |
-| Validation | Training before 2024; time-based validation on 2024 |
-| Ensemble | Equal-weight combination of tuned and targeted-weather LightGBM models |
-| Postprocessing | Global prediction scaling and clipping to each group's capacity |
+| Prediction targets | `kpx_group_1`, `kpx_group_2`, `kpx_group_3` |
+| Inputs | LDAPS/GFS weather forecasts and calendar features |
+| Model families | RandomForest, LightGBM, CatBoost and XGBoost |
+| Main local split | Train on years before 2024; validate on 2024 |
+| Recorded ensemble | Equal-weight tuned and targeted-weather LightGBM |
+| Output constraints | Non-negative predictions, clipped to group capacity |
+| Experiment artifacts | Models, predictions and JSON summaries stored locally |
 
-Lessons recorded during development:
+The documentation focuses on methods, reproducibility and engineering decisions. Original development records are retained in the repository.
 
-- Wind-vector features need validation rather than assuming that more weather features help.
-- Broad aggregation can mix variables with different units and physical meanings; targeted weather features offer a more interpretable alternative.
-- Separate models by KPX group and fit missing-value handling on the training split.
-- Evaluate both forecast error and the settlement-oriented FiCR component when selecting postprocessing.
-- Preserve unsuccessful experiments and their reasoning so later changes have a clear comparison point.
+## Modeling Workflow
 
-## Repository Guide
+```mermaid
+flowchart TD
+    A["Weather forecasts and generation labels"] --> B["Timestamp aggregation and feature joins"]
+    B --> C["Time-based model experiments"]
+    C --> D["Separate models for three KPX groups"]
+    D --> E["Prediction alignment and ensemble"]
+    E --> F["Scaling, capacity clipping and validation"]
+```
 
-- `src/dacon_wind/`: data readers, weather/calendar features, time split, metric and models.
-- `scripts/`: training, local evaluation, ensemble/postprocessing and submission validation.
-- `notebooks/`: baseline and metric reference notebooks.
-- [Experiment log](docs/experiment_log.md) and [experiment feedback](docs/experiment_feedback.md): recorded comparisons and lessons.
-- [Workflow](docs/workflow.md), `start-plan.md`, `AGENTS.md` and `prompts/`: development references. Their progress notes are historical development references.
+1. Aggregate weather-grid values by `forecast_kst_dtm` and join them to label or sample-submission timestamps.
+2. Combine calendar signals with mean weather forecasts; compare wind-vector and targeted-weather feature variants.
+3. Fit median imputation on the training split and train one model per target using its available labels.
+4. Evaluate forecast error and settlement-oriented behavior together.
+5. Align ensemble members to the official sample, combine predictions, and apply the selected postprocessing.
+6. Validate the generated submission structure and prediction bounds.
 
-## Local Setup and Data
+See [model design](docs/MODEL_DESIGN.md) for module responsibilities, feature formulas and evaluation behavior.
 
-`requirements.txt` preserves the original pinned environment (UTF-16 encoded), including development dependencies. Create an isolated environment and install it from the project root:
+## What the Experiments Explore
 
-```shell
+| Question | Experiment direction |
+|---|---|
+| Which model family provides a useful baseline? | RandomForest, LightGBM, CatBoost and XGBoost comparisons |
+| Do additional wind variables help? | Wind speed/direction derivatives and targeted height-specific features |
+| Does feature diversity help an ensemble? | Tuned and targeted-weather models, weight search, selective XGBoost inclusion |
+| Does calibration transfer to another period? | Global scaling, group-wise scaling and rolling-year evaluation |
+| Does training diversity improve stability? | Multiple seeds and regression-objective variants |
+
+The important lessons are that added features need a controlled comparison, ensemble diversity should be measured on aligned predictions, and calibration selected on one year needs validation on other periods. A rolling experiment can only support a multi-year conclusion when multiple folds are actually evaluable.
+
+The [experiment guide](docs/EXPERIMENT_GUIDE.md) maps these questions to scripts and explains how to extend them.
+
+## Quick Start
+
+Run commands from the repository root. Python, NumPy, pandas, scikit-learn, LightGBM and joblib support the main LightGBM route; CatBoost and XGBoost support their respective comparison scripts.
+
+`requirements.txt` retains the original pinned environment, including development dependencies, in UTF-16 encoding:
+
+```powershell
 python -m venv .venv
-# Activate .venv using the command for your operating system.
+.\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 ```
 
-There is no automatic dataset download. Only users authorized under the competition conditions should obtain the official data and place the files locally:
+For a data-free check of the metric implementation:
 
-| Local path | Required input |
-|---|---|
-| `data/raw/train/train_labels.csv` | Group generation labels |
-| `data/raw/train/ldaps_train.csv`, `gfs_train.csv` | Training weather forecasts |
-| `data/raw/test/ldaps_test.csv`, `gfs_test.csv` | Evaluation weather forecasts |
-| `data/raw/sample_submission.csv` | Official submission schema and row order |
-
-The baseline scripts shown below do not require the provided SCADA files. Do not add any official dataset files to Git.
-
-## Recorded Submission Pipeline
-
-Run from the project root with the authorized inputs available. Scripts use fixed experiment IDs and refuse to overwrite existing generated artifacts; use a fresh working directory for reruns.
-
-For the tuned single-model submission:
-
-```shell
-python scripts/train_lgbm_tuned_submit.py
-python scripts/validate_submission.py submissions/lgbm_003_tuned.csv
+```powershell
+python src/dacon_wind/metric.py
 ```
 
-`python scripts/tune_lgbm_cv.py` runs the earlier parameter search; the submission script already contains the selected parameters.
+Training requires authorized local competition inputs. There is no automatic dataset download. The [reproduction guide](docs/REPRODUCIBILITY.md) lists the inputs, complete command order, generated artifacts and troubleshooting steps.
 
-For the recorded ensemble and scale-1.10 submission, the complete artifact dependency order is:
+### Local Validation
 
-```shell
+```powershell
+python scripts/train_lgbm_cv.py
+```
+
+This trains a baseline on earlier years and evaluates on 2024. It writes validation predictions, a model bundle and a JSON run summary.
+
+### Recorded Ensemble and Submission Route
+
+```powershell
 python scripts/train_lgbm_tuned_submit.py
 python scripts/train_lgbm_targeted_weather_submit.py
 python scripts/create_ensemble_submission.py
@@ -90,17 +91,39 @@ python scripts/create_scale_110_submission.py
 python scripts/validate_submission.py submissions/lgbm_008_scale_110.csv
 ```
 
-The 1.03 postprocessing step is included because the 1.10 script reads the earlier submission for comparison and alignment. The final 1.10 predictions are calculated directly from the unscaled ensemble, rather than multiplying the two scales together.
+The intermediate scale-1.03 file is needed by the scale-1.10 script for comparison and row alignment. The final predictions are computed from the original ensemble with a direct 1.10 multiplier.
 
-These commands recreate the recorded test-prediction pipeline. They do not rerun the full validation search; individual CV scripts document those experiments. Full training and inference require the excluded raw data.
+Submission scripts use fixed artifact names and refuse to overwrite existing outputs. Preserve previous runs and use a fresh working copy when reproducing the full route.
 
-## Limitations
+## Repository Guide
 
-- Local selection used the 2024 validation period. Repeated model/scale selection on that period can overfit; generalization requires validation on additional periods.
-- Global scaling can trade forecast accuracy against settlement-oriented behavior. Its effect needs independent validation before reuse.
-- Current weather aggregation drops `data_available_kst_dtm` and has no explicit prediction-cutoff filter. The official rules specify a cutoff of the previous day at 14:00 KST. Availability of every input against that cutoff has not been verified from raw data. A fresh competition-valid run needs this check before training.
-- `validate_submission.py` checks shape, columns, missing/non-numeric values and prediction bounds. It does not independently verify forecast IDs/timestamps against the sample; ensemble/postprocessing scripts perform those alignment checks.
+| Path | Role |
+|---|---|
+| [`src/dacon_wind/data.py`](src/dacon_wind/data.py) | Read local labels, weather and sample data; parse timestamps |
+| [`features.py`](src/dacon_wind/features.py) | Calendar, grid aggregation and weather-derived features |
+| [`cv.py`](src/dacon_wind/cv.py) | Main time-based train/validation masks |
+| [`metric.py`](src/dacon_wind/metric.py) | Group capacities, eligible rows and combined evaluation formula |
+| [`models.py`](src/dacon_wind/models.py) | Shared RandomForest/LightGBM training helpers |
+| [`scripts/`](scripts/) | Model experiments, submission generation and validation |
+| [`notebooks/`](notebooks/) | Baseline and metric reference notebooks |
+| [Model design](docs/MODEL_DESIGN.md) | Data flow, feature variants and model/evaluation contracts |
+| [Reproduction guide](docs/REPRODUCIBILITY.md) | Environment, inputs, commands, outputs and common failures |
+| [Experiment guide](docs/EXPERIMENT_GUIDE.md) | Experiment map and extension procedure |
+| [Sources](docs/SOURCES.md) | Official competition, data, rules and metric references |
 
-## Sources and License Status
+[Experiment log](docs/experiment_log.md), [experiment feedback](docs/experiment_feedback.md), [workflow notes](docs/workflow.md), `start-plan.md`, `AGENTS.md` and `prompts/` preserve the original development context. Dated status notes describe the project at that point in its history.
 
-Official competition, data, rules and metric references are listed in [docs/SOURCES.md](docs/SOURCES.md). Dataset usage conditions apply separately to the code. This repository currently specifies no project-wide reuse license; referenced competition material and dependencies are not relicensed by this documentation.
+## Local Data and Artifacts
+
+Keep competition inputs under `data/raw/`, model bundles under `outputs/models/`, predictions under `outputs/predictions/`, JSON summaries under `outputs/logs/`, and final CSVs under `submissions/`.
+
+These files are excluded from Git. Input filenames and artifact paths are documented so the code can be followed without redistributing the dataset or generated predictions.
+
+## Technical Considerations
+
+- The main holdout is one calendar year. Repeated feature, ensemble and scale selection on that holdout can overfit.
+- Weather aggregation excludes `data_available_kst_dtm` and does not apply an availability-time filter. A cutoff-aware data selection layer is a useful next extension.
+- Group-specific scaling adds calibration flexibility and can overfit more easily than a single shared scale.
+- The CSV validator checks shape, column order, missing/nonnumeric values and capacity bounds. Ensemble/postprocessing scripts separately check forecast ID and timestamp alignment.
+- Submission training scripts refit models on all available training labels. They do not rerun parameter search or the full validation experiment sequence.
+- Full training and inference depend on the local competition data and original environment. This documentation update does not include a new full-data training run.
