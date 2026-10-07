@@ -1,10 +1,12 @@
 # Wind Power Forecasting
 
-## Current Status
+## Overview
 
-Updated: 2026-07-10 KST
+Experiment code for the [DACON BARAM 2026 wind power forecasting competition](https://dacon.io/competitions/official/236727/overview/description). LDAPS/GFS weather forecasts and calendar features are used to predict hourly generation for three KPX groups.
 
-This project is for the DACON wind power generation forecasting AI contest. The goal is to predict wind power generation for KPX groups using weather forecast data.
+The recorded approach compares RandomForest, LightGBM, CatBoost and XGBoost, then combines two LightGBM variants and applies capacity-clipped scaling. This repository documents the experiments, including unsuccessful feature changes.
+
+This repository focuses on the modeling workflow, experiment design and lessons learned. Raw-data training and inference have not been independently rerun for this documentation update.
 
 Main workflow:
 
@@ -15,93 +17,90 @@ Main workflow:
 5. Clip predictions by each group capacity.
 6. Validate every submission using `scripts/validate_submission.py`.
 
-Raw data and generated outputs are not committed when ignored by `.gitignore`. Keep raw files under `data/raw/`, model artifacts under `outputs/models/`, prediction artifacts under `outputs/predictions/`, logs under `outputs/logs/`, and submission CSVs under `submissions/`.
+Raw data, trained models, row-level predictions and submission CSVs are excluded. Keep authorized local data under `data/raw/`, models under `outputs/models/`, predictions under `outputs/predictions/`, logs under `outputs/logs/`, and submission CSVs under `submissions/`. See [sources and usage conditions](docs/SOURCES.md).
 
-## Best Result So Far
+## Modeling Approach and Lessons
 
-| Field | Value |
+| Component | Approach |
 |---|---|
-| exp_id | `lgbm_008_scale_110_submit` |
-| model | scale-1.10 postprocessed ensemble submission |
-| features | scale 1.10 applied to `ens_001_simple_avg_test` predictions, capacity clipped |
-| submission file | `submissions/lgbm_008_scale_110.csv` |
-| local validation total_score | 0.6184267418 |
-| local one_minus_nmae | 0.8671491370 |
-| local ficr | 0.3697043467 |
-| DACON public total_score | 0.6211026154 |
-| DACON public one_minus_nmae | 0.8634833072 |
-| DACON public ficr | 0.3787219236 |
-| public rank at submission time | 148 |
-| submission title | `0710_v1 edit` |
-| submitted_at_kst | 2026-07-10 17:54:24 |
+| Baselines | RandomForest, LightGBM, CatBoost and XGBoost |
+| Features | Calendar features and mean-aggregated LDAPS/GFS forecasts |
+| Validation | Training before 2024; time-based validation on 2024 |
+| Ensemble | Equal-weight combination of tuned and targeted-weather LightGBM models |
+| Postprocessing | Global prediction scaling and clipping to each group's capacity |
 
-Previous best public references:
+Lessons recorded during development:
 
-- `ens_001_simple_avg_submit`: public total_score=0.6062263329, public one_minus_nmae=0.8675678207, public ficr=0.3448848451, rank 275 at submission time.
-- `lgbm_003_tuned_submit`: public total_score=0.60516, public one_minus_nmae=0.86678, public ficr=0.34354.
+- Wind-vector features need validation rather than assuming that more weather features help.
+- Broad aggregation can mix variables with different units and physical meanings; targeted weather features offer a more interpretable alternative.
+- Separate models by KPX group and fit missing-value handling on the training split.
+- Evaluate both forecast error and the settlement-oriented FiCR component when selecting postprocessing.
+- Preserve unsuccessful experiments and their reasoning so later changes have a clear comparison point.
 
-Previous best public reference:
+## Repository Guide
 
-- `lgbm_006_ficr_focus_submit`: public total_score=0.6158048399, public one_minus_nmae=0.8679909923, public ficr=0.3636186875, rank 245 at submission time.
+- `src/dacon_wind/`: data readers, weather/calendar features, time split, metric and models.
+- `scripts/`: training, local evaluation, ensemble/postprocessing and submission validation.
+- `notebooks/`: baseline and metric reference notebooks.
+- [Experiment log](docs/experiment_log.md) and [experiment feedback](docs/experiment_feedback.md): recorded comparisons and lessons.
+- [Workflow](docs/workflow.md), `start-plan.md`, `AGENTS.md` and `prompts/`: development references. Their progress notes are historical development references.
 
-Generated artifacts from the current best public submission run:
+## Local Setup and Data
 
-- `submissions/lgbm_008_scale_110.csv`
-- `outputs/predictions/lgbm_008_scale_110_test.csv`
-- `outputs/logs/lgbm_008_scale_110_submit.json`
+`requirements.txt` preserves the original pinned environment (UTF-16 encoded), including development dependencies. Create an isolated environment and install it from the project root:
 
-Validation status:
+```shell
+python -m venv .venv
+# Activate .venv using the command for your operating system.
+python -m pip install -r requirements.txt
+```
 
-- `python scripts/validate_submission.py submissions/lgbm_008_scale_110.csv` passed.
+There is no automatic dataset download. Only users authorized under the competition conditions should obtain the official data and place the files locally:
 
-## Experiment Summary
+| Local path | Required input |
+|---|---|
+| `data/raw/train/train_labels.csv` | Group generation labels |
+| `data/raw/train/ldaps_train.csv`, `gfs_train.csv` | Training weather forecasts |
+| `data/raw/test/ldaps_test.csv`, `gfs_test.csv` | Evaluation weather forecasts |
+| `data/raw/sample_submission.csv` | Official submission schema and row order |
 
-| exp_id | model | features | local total_score | public total_score | status |
-|---|---|---|---:|---:|---|
-| `baseline_rf_001` | RandomForest | baseline features | - | 0.5879246832 | submitted first baseline |
-| `lgbm_001` | LightGBM v1 | baseline calendar + LDAPS/GFS mean features | 0.5984976879 | - | local validation baseline |
-| `lgbm_002_wind` | LightGBM v1 | baseline calendar + LDAPS/GFS mean features + wind vector derivatives | 0.5966447814 | - | worse than `lgbm_001`, no submission |
-| `lgbm_003_tuned_submit` | LightGBM tuned grid | baseline calendar + LDAPS/GFS mean features | 0.6033279875 | 0.60516 | previous best submitted model and comparison baseline |
-| `lgbm_004_weather_agg` | LightGBM tuned grid | baseline calendar + LDAPS/GFS mean features + row-wise LDAPS/GFS weather aggregations | 0.5962283588 | - | worse than `lgbm_003_tuned`, no submission |
-| `lgbm_005_targeted_weather` | LightGBM tuned grid | baseline calendar + LDAPS/GFS mean features + targeted weather features | 0.6019196756 | - | ensemble candidate, not standalone submission |
-| `ens_001_simple_avg` | validation-only simple ensemble | 0.5*`lgbm_003_tuned` + 0.5*`lgbm_005_targeted_weather` | 0.6037465036 | - | selected submission candidate |
-| `ens_001_simple_avg_submit` | 50/50 ensemble submission | 0.5*`lgbm_003_tuned` + 0.5*`lgbm_005_targeted_weather` | 0.6037465036 | 0.6062263329 | previous best public submission |
-| `lgbm_006_ficr_focus_submit` | FICR-focused postprocessed ensemble submission | 1.03 global scaling of `ens_001_simple_avg_test` predictions, capacity clipped | 0.6109322217 | 0.6158048399 | previous best public submission |
-| `lgbm_008_scale_110_submit` | scale-1.10 postprocessed ensemble submission | 1.10 global scaling of `ens_001_simple_avg_test` predictions, capacity clipped | 0.6184267418 | 0.6211026154 | current best public submission |
-| `cat_001_baseline` | CatBoost baseline | baseline calendar + LDAPS/GFS mean features | 0.5980575665 | - | ensemble candidate, no submission yet |
-| `xgb_001_baseline` | XGBoost baseline | baseline calendar + LDAPS/GFS mean features | 0.5988239498 | - | ensemble candidate, no submission yet |
+The baseline scripts shown below do not require the provided SCADA files. Do not add any official dataset files to Git.
 
-Important lessons so far:
+## Recorded Submission Pipeline
 
-- Wind vector derivative features in `lgbm_002_wind` did not improve local validation.
-- Broad row-wise LDAPS/GFS aggregation in `lgbm_004_weather_agg` degraded performance, likely because it mixed weather variables with different physical meanings and units.
-- Targeted weather features in `lgbm_005_targeted_weather` recovered most of the `lgbm_004_weather_agg` loss and slightly improved one_minus_nmae over `lgbm_003_tuned`, but lower FICR kept the standalone total_score below `lgbm_003_tuned`.
-- `lgbm_005_targeted_weather` is useful ensemble diversity: the 50/50 `ens_001_simple_avg` validation improvement transferred to the DACON public leaderboard.
-- `lgbm_008_scale_110_submit` is the current best public submission; validation-selected 1.10 global scaling of `ens_001_simple_avg_test` predictions improved public total_score mainly through FiCR, while public one_minus_nmae dropped versus `lgbm_006_ficr_focus_submit`.
-- Tuned LightGBM with smaller trees performed better.
-- Current best LightGBM setting: `num_leaves=15`, `min_child_samples=20`, `learning_rate=0.03`, `n_estimators=1000`, `reg_lambda=5.0`.
-- CatBoost baseline did not beat tuned LightGBM but may be useful later for ensemble diversity.
-- XGBoost baseline did not beat tuned LightGBM but is currently the strongest non-LightGBM ensemble candidate.
-- Detailed qualitative feedback and experiment lessons are documented in `docs/experiment_feedback.md`.
+Run from the project root with the authorized inputs available. Scripts use fixed experiment IDs and refuse to overwrite existing generated artifacts; use a fresh working directory for reruns.
 
-## How to Reproduce Previous Tuned LightGBM Submission
+For the tuned single-model submission:
 
-Run from the project root:
-
-```powershell
-python scripts/tune_lgbm_cv.py
+```shell
 python scripts/train_lgbm_tuned_submit.py
 python scripts/validate_submission.py submissions/lgbm_003_tuned.csv
 ```
 
-The tuned submission uses separate LightGBM models for the three KPX groups, baseline calendar + LDAPS/GFS mean features, and group-capacity clipping.
+`python scripts/tune_lgbm_cv.py` runs the earlier parameter search; the submission script already contains the selected parameters.
 
-## Next Experiments
+For the recorded ensemble and scale-1.10 submission, the complete artifact dependency order is:
 
-`lgbm_008_scale_110_submit` is the current best public submission, with public total_score=0.6211026154, public one_minus_nmae=0.8634833072, and public ficr=0.3787219236. It uses scale 1.10 applied to `ens_001_simple_avg_test` predictions, clipped to group capacity. The public gain versus `lgbm_006_ficr_focus_submit` is FiCR-driven, while public one_minus_nmae decreased. `ens_001_simple_avg_submit` remains the pre-scaling ensemble reference, and `lgbm_003_tuned_submit` remains the main single-model comparison baseline. CatBoost and XGBoost are currently ensemble candidates, not standalone submission candidates. Detailed qualitative feedback and experiment lessons are documented in `docs/experiment_feedback.md`.
+```shell
+python scripts/train_lgbm_tuned_submit.py
+python scripts/train_lgbm_targeted_weather_submit.py
+python scripts/create_ensemble_submission.py
+python scripts/create_ficr_postprocess_submission.py
+python scripts/create_scale_110_submission.py
+python scripts/validate_submission.py submissions/lgbm_008_scale_110.csv
+```
 
-Planned experiments:
+The 1.03 postprocessing step is included because the 1.10 script reads the earlier submission for comparison and alignment. The final 1.10 predictions are calculated directly from the unscaled ensemble, rather than multiplying the two scales together.
 
-1. Keep `lgbm_008_scale_110_submit` as the current public reference.
-2. Avoid more public probing today.
-3. Run validation-only modeling or feature experiments before considering any further scale submissions.
+These commands recreate the recorded test-prediction pipeline. They do not rerun the full validation search; individual CV scripts document those experiments. Full training and inference require the excluded raw data.
+
+## Limitations
+
+- Local selection used the 2024 validation period. Repeated model/scale selection on that period can overfit; generalization requires validation on additional periods.
+- Global scaling can trade forecast accuracy against settlement-oriented behavior. Its effect needs independent validation before reuse.
+- Current weather aggregation drops `data_available_kst_dtm` and has no explicit prediction-cutoff filter. The official rules specify a cutoff of the previous day at 14:00 KST. Availability of every input against that cutoff has not been verified from raw data. A fresh competition-valid run needs this check before training.
+- `validate_submission.py` checks shape, columns, missing/non-numeric values and prediction bounds. It does not independently verify forecast IDs/timestamps against the sample; ensemble/postprocessing scripts perform those alignment checks.
+
+## Sources and License Status
+
+Official competition, data, rules and metric references are listed in [docs/SOURCES.md](docs/SOURCES.md). Dataset usage conditions apply separately to the code. This repository currently specifies no project-wide reuse license; referenced competition material and dependencies are not relicensed by this documentation.
