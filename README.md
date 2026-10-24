@@ -1,5 +1,7 @@
 # Wind Power Forecasting
 
+**English** | [한국어](README.ko.md)
+
 A tabular machine-learning workflow for hourly wind generation forecasts, built for the [DACON BARAM 2026 competition](https://dacon.io/competitions/official/236727/overview/description).
 
 The project turns LDAPS and GFS weather forecasts into timestamp-level features, trains a separate regressor for each KPX group, and compares feature, ensemble and calibration choices with time-based validation.
